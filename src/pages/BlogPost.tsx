@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
-import { blogPosts } from './Blog';
+import { BlogPostData } from './Blog';
+import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
 
 // Extended blog post content - in a real app, this would come from a CMS or markdown files
@@ -162,30 +163,162 @@ const blogPostContent = {
 
       <p>Budget travel is about making smart choices, not cutting corners on safety or missing out on experiences. With these strategies, you can travel more frequently and for longer periods while staying within your financial means.</p>
     `
+  },
+  'exploring-udaipur-city-of-lakes': {
+    content: `
+      <p>Udaipur, known as the "City of Lakes" and "Venice of the East," is one of India's most romantic and picturesque destinations. Nestled in the Aravalli Hills of Rajasthan, this royal city offers a perfect blend of history, culture, and natural beauty that captivates every visitor.</p>
+
+      <h2>Must-Visit Lakes</h2>
+      <p>Udaipur is famous for its stunning lakes, each with its own charm and character. Lake Pichola, the most famous, offers breathtaking views of the City Palace and Jag Mandir. Take a boat ride during sunset to witness the city's golden hour magic reflected in the water.</p>
+
+      <h3>Fateh Sagar Lake</h3>
+      <p>This artificial lake is perfect for a peaceful morning walk or evening stroll. The Nehru Garden in the middle of the lake is accessible by boat and offers a serene escape from the city's hustle and bustle.</p>
+
+      <h2>Royal Heritage</h2>
+      <p>The City Palace complex is a magnificent example of Rajput architecture, with its intricate carvings, beautiful courtyards, and stunning views of Lake Pichola. Don't miss the Crystal Gallery, which houses an impressive collection of crystal artifacts.</p>
+
+      <h3>Jag Mandir Palace</h3>
+      <p>This island palace in Lake Pichola is a perfect example of Rajput luxury. The palace's beautiful gardens and architecture make it a popular spot for weddings and special events.</p>
+
+      <h2>Cultural Experiences</h2>
+      <p>Udaipur's rich cultural heritage comes alive through its traditional music, dance, and crafts. Visit the Bagore Ki Haveli for an evening cultural show featuring folk dances and music. The city is also famous for its miniature paintings and traditional handicrafts.</p>
+
+      <h3>Local Markets</h3>
+      <p>Explore the bustling markets of Udaipur, where you can find everything from traditional textiles and jewelry to local spices and handicrafts. The Hathi Pol Bazaar and Bada Bazaar are perfect for souvenir shopping.</p>
+
+      <h2>Best Time to Visit</h2>
+      <p>The best time to visit Udaipur is from October to March when the weather is pleasant and perfect for sightseeing. The monsoon season (July to September) brings the lakes to life but can be humid and rainy.</p>
+
+      <p>Udaipur's timeless beauty, rich history, and warm hospitality make it a destination that will stay in your heart forever. Whether you're a history buff, nature lover, or simply seeking a romantic getaway, this city of lakes has something special to offer everyone.</p>
+    `
   }
 };
 
 export function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  
-  // Find the blog post by slug
-  const post = blogPosts.find(p => p.slug === slug);
-  const content = slug ? blogPostContent[slug as keyof typeof blogPostContent] : null;
+  const [post, setPost] = useState<BlogPostData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!post || !content) {
+  useEffect(() => {
+    if (slug) {
+      fetchBlogPost(slug);
+    }
+  }, [slug]);
+
+  const fetchBlogPost = async (postSlug: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Fetching blog post with slug:', postSlug);
+      
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        setError('Database not available');
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', postSlug)
+        .single();
+
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Error fetching blog post:', error);
+        if (error.code === 'PGRST116') {
+          // Post not found in database, try to use static content as fallback
+          console.log('Post not found in database, checking static content...');
+          const staticContent = blogPostContent[postSlug as keyof typeof blogPostContent];
+          if (staticContent) {
+            console.log('Using static content as fallback');
+            const fallbackPost: BlogPostData = {
+              id: postSlug,
+              title: postSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              slug: postSlug,
+              content: staticContent.content,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              published_date: new Date().toISOString(),
+              read_time: '5 min read',
+              image_url: null
+            };
+            setPost(fallbackPost);
+            setError(null);
+          } else {
+            setError('Post not found');
+          }
+        } else {
+          setError(`Database error: ${error.message}`);
+        }
+      } else if (data) {
+        console.log('Blog post found:', data);
+        setPost(data);
+        setError(null);
+      } else {
+        setError('Post not found');
+      }
+    } catch (err) {
+      console.error('Exception fetching blog post:', err);
+      setError(`Failed to load post: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading blog post...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !post) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Post Not Found</h1>
-            <p className="text-gray-600 mb-6">The blog post you're looking for doesn't exist.</p>
-            <Link
-              to="/blog"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Blog
-            </Link>
+            <p className="text-gray-600 mb-4">The blog post you're looking for doesn't exist.</p>
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
+                <p className="text-sm text-red-800">
+                  <strong>Error:</strong> {error}
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  Slug: {slug}
+                </p>
+              </div>
+            )}
+            <div className="space-y-4">
+              <Link
+                to="/blog"
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Blog
+              </Link>
+              <div className="text-sm text-gray-500">
+                <p>If you believe this is an error, please try refreshing the page.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -196,8 +329,8 @@ export function BlogPost() {
     <>
       <SEOHead 
         title={`${post.title} – Travel Pack Blog`}
-        description={post.excerpt}
-        image={post.image}
+        description={post.content.replace(/<[^>]*>/g, '').substring(0, 160)}
+        image={post.image_url}
       />
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -217,13 +350,13 @@ export function BlogPost() {
             {/* Hero Image */}
             <div className="aspect-video relative overflow-hidden">
               <img
-                src={post.image}
+                src={post.image_url || '/images/placeholder-blog.jpg'}
                 alt={post.title}
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-6 left-6">
                 <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  {post.category}
+                  Travel Tips
                 </span>
               </div>
             </div>
@@ -239,15 +372,15 @@ export function BlogPost() {
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
-                    <span>{post.author}</span>
+                    <span>Travel Pack</span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-2" />
-                    <span>{post.date}</span>
+                    <span>{formatDate(post.published_date)}</span>
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
-                    <span>{post.readTime}</span>
+                    <span>{post.read_time || '5 min read'}</span>
                   </div>
                 </div>
               </header>
@@ -255,7 +388,7 @@ export function BlogPost() {
               {/* Article Body */}
               <div 
                 className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: content.content }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
                 style={{
                   lineHeight: '1.7',
                   fontSize: '18px'
@@ -266,8 +399,8 @@ export function BlogPost() {
               <footer className="mt-12 pt-8 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    <p>Written by <strong className="text-gray-900">{post.author}</strong></p>
-                    <p>Published on {post.date}</p>
+                    <p>Written by <strong className="text-gray-900">Travel Pack Team</strong></p>
+                    <p>Published on {formatDate(post.published_date)}</p>
                   </div>
                   <Link
                     to="/blog"
@@ -280,42 +413,17 @@ export function BlogPost() {
             </div>
           </Reveal>
 
-          {/* Related Articles */}
+          {/* Related Articles - Simplified for now */}
           <Reveal className="mt-12" variant="fade-up">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">More Travel Tips</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {blogPosts
-                .filter(p => p.slug !== slug)
-                .slice(0, 2)
-                .map((relatedPost) => (
-                  <Reveal key={relatedPost.id} variant="fade-up" delay={relatedPost.id * 60}>
-                    <Link to={`/blog/${relatedPost.slug}`} className="block">
-                    <article className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-video">
-                        <img
-                          src={relatedPost.image}
-                          alt={relatedPost.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">
-                            {relatedPost.category}
-                          </span>
-                          <span className="text-gray-500 text-sm">{relatedPost.readTime}</span>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                          {relatedPost.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm line-clamp-3">
-                          {relatedPost.excerpt}
-                        </p>
-                      </div>
-                    </article>
-                    </Link>
-                  </Reveal>
-                ))}
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">Check out more travel articles on our blog!</p>
+              <Link
+                to="/blog"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-block"
+              >
+                View All Articles
+              </Link>
             </div>
           </Reveal>
         </div>

@@ -28,10 +28,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'POST') {
     // Create new blog post
     try {
-      const { title, slug, content } = req.body;
+      const { title, slug, content, published_date, read_time, image_url } = req.body;
 
       if (!title || !slug || !content) {
         return res.status(400).json({ error: 'Title, slug, and content are required' });
+      }
+
+      // If image_url is a data URL (from filters), we need to upload it to storage
+      let finalImageUrl = image_url;
+      if (image_url && image_url.startsWith('data:')) {
+        try {
+          // Convert data URL to blob
+          const response = await fetch(image_url);
+          const blob = await response.blob();
+          
+          // Generate unique filename
+          const timestamp = Date.now();
+          const fileExtension = blob.type.split('/')[1] || 'jpg';
+          const uploadKey = `blog-images/${timestamp}_filtered.${fileExtension}`;
+
+          // Upload to blog_image bucket
+          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+            .from('blog_image')
+            .upload(uploadKey, blob, {
+              contentType: blob.type,
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error('Image upload error:', uploadError);
+            return res.status(500).json({ error: 'Failed to upload image' });
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabaseAdmin.storage
+            .from('blog_image')
+            .getPublicUrl(uploadData.path);
+
+          finalImageUrl = publicUrl;
+        } catch (error) {
+          console.error('Error processing image:', error);
+          return res.status(500).json({ error: 'Failed to process image' });
+        }
       }
 
       const { data: post, error } = await supabaseAdmin
@@ -40,6 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           title,
           slug,
           content,
+          published_date: published_date ? new Date(published_date).toISOString() : null,
+          read_time,
+          image_url: finalImageUrl,
           updated_at: new Date().toISOString()
         })
         .select()

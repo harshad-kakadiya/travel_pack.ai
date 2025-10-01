@@ -1,18 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY as string;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+let supabaseAdminClient = null;
+
+if (supabaseUrl && supabaseServiceKey) {
+  supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+} else {
+  if (import.meta.env.DEV) {
+    console.warn('[supabaseAdmin] Missing VITE_SUPABASE_URL / VITE_SUPABASE_SERVICE_ROLE_KEY. Admin operations will fail.');
+  }
 }
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+export const supabaseAdmin = supabaseAdminClient;
 
 export interface BlogPost {
   id: string;
@@ -21,6 +27,9 @@ export interface BlogPost {
   content: string;
   created_at: string;
   updated_at: string;
+  published_date: string | null;
+  read_time: string | null;
+  image_url: string | null;
 }
 
 export interface AffiliateLink {
