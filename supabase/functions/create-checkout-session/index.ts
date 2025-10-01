@@ -32,7 +32,7 @@ serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, { status: 405 });
 
   try {
-    const secret = Deno.env.get("STRIPE_SECRET_KEY");
+    const secret = Deno.env.get("VITE_STRIPE_SECRET_KEY");
     if (!secret) return json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
 
     // Allow env override but default to the provided URLs

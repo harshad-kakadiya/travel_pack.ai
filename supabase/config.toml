@@ -1,3 +1,7 @@
+[functions.generate-travel-brief]
+verify_jwt = true   # or false if you don’t need JWT checking
+# other valid keys if needed: entrypoint, import_map, static_files
+
 project_id = "cbnimrastdmudctubkyx"
 
 [api]

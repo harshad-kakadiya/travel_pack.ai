@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Check for OpenAI API key
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('VITE_OPENAI_API_KEY');
     const hasOpenAI = !!openaiApiKey;
 
     const extractedData: ParsedBookingData[] = [];

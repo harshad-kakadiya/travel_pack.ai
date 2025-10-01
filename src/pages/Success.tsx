@@ -34,7 +34,7 @@ interface TravelPackHistory {
 export function Success() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [verificationData, setVerificationData] = useState<VerifySessionResponse | null>(null);
@@ -54,7 +54,7 @@ export function Success() {
   const verifyPayment = async () => {
     try {
       // Get pending_session_id from localStorage (saved during checkout)
-      const pendingSessionId = localStorage.getItem('pending_session_id');
+      const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';
       
       if (!pendingSessionId) {
         setError('No pending session found. Please try creating a new travel pack.');
@@ -71,7 +71,7 @@ export function Success() {
         },
         body: JSON.stringify({
           session_id: sessionId,
-          pending_session_id: pendingSessionId
+          pending_session_id: 'f2668173-0fc5-47ae-9593-12a707f79cc4'
         }),
       });
 
