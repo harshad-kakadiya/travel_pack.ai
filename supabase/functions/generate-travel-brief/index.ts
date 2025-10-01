@@ -450,7 +450,8 @@ ${JSON.stringify(tripData.booking_data, null, 2)}
 Generate a complete travel brief following the PDF design specification above. Ensure all recommendations are current and accurate.`;
 
     // Call OpenAI GPT-4
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('VITE_OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get('VITE_OPENAI_API_KEY');
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured');
     }

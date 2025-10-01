@@ -26,11 +26,15 @@ import { NotFound } from './pages/NotFound';
 import { Admin } from './pages/Admin';
 import { TripProvider } from './context/TripContext';
 import { AdminProvider } from './context/AdminContext';
+import { AuthProvider } from './context/AuthContext';
+import ResetPassword from './pages/ResetPassword';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
-    <AdminProvider>
-      <TripProvider>
+    <AuthProvider>
+      <AdminProvider>
+        <TripProvider>
         <Router>
           <HelmetProvider>
             <ErrorBoundary>
@@ -39,7 +43,11 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/plan" element={<Plan />} />
+                  <Route path="/plan" element={
+                    <ProtectedRoute>
+                      <Plan />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/examples" element={<Examples />} />
                   <Route path="/examples-checkout-step" element={<ExamplesCheckoutStep />} />
                   <Route path="/preview" element={<Preview />} />
@@ -55,6 +63,7 @@ function App() {
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/refund-policy" element={<RefundPolicy />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/itinerary/:id/day/:day" element={<ItineraryViewer />} />
 </Routes>
@@ -62,8 +71,9 @@ function App() {
             </ErrorBoundary>
           </HelmetProvider>
         </Router>
-      </TripProvider>
-    </AdminProvider>
+        </TripProvider>
+      </AdminProvider>
+    </AuthProvider>
   );
 }
 

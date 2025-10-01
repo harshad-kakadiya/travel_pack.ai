@@ -6,7 +6,13 @@ const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 let supabaseClient: SupabaseClient | null = null;
 
 if (url && anon) {
-  supabaseClient = createClient(url, anon, { auth: { persistSession: false } });
+  supabaseClient = createClient(url, anon, { 
+    auth: { 
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    } 
+  });
 } else {
   if (import.meta.env.DEV) {
     console.warn('[supabase] Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. Skipping client init in dev.');
@@ -106,6 +112,9 @@ export async function uploadFilesToStorage(files: File[], pendingSessionId: stri
  */
 export async function processUploads(pendingSessionId: string, uploadKeys: string[]): Promise<ProcessUploadsResult> {
   try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
     const response = await fetch(`${supabaseUrl}/functions/v1/process-uploads`, {
       method: 'POST',
       headers: {

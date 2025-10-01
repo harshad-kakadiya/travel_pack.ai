@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle, MapPin, Clock, Shield, Globe, Calendar, Naviga
 import { SEOHead } from '../components/SEOHead';
 import { features } from '../data/features';
 import Reveal from '../components/Reveal';
+import { AuthExample } from '../components/AuthExample';
 
 export function Home() {
   return (
@@ -273,6 +274,19 @@ export function Home() {
           </div>
         </div>
       </Reveal>
+
+      {/* Authentication Example - Remove this in production */}
+      <section className="py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Demo</h2>
+            <p className="text-gray-600 mb-6">
+              This section demonstrates the authentication system. Try signing in/up using the buttons in the header.
+            </p>
+          </div>
+          <AuthExample />
+        </div>
+      </section>
 
       {/* Comprehensive Features Section */}
       <Reveal as="section" className="bg-gray-50 py-20" variant="fade-up">
