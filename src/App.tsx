@@ -30,6 +30,7 @@ import { AuthProvider } from './context/AuthContext';
 import ResetPassword from './pages/ResetPassword';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+
 function App() {
   return (
     <AuthProvider>
