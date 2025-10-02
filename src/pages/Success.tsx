@@ -10,6 +10,7 @@ import { AffiliateLinks } from '../components/AffiliateLinks';
 function enhanceAIResponse(response: string): string {
   // Convert plain text to properly formatted HTML
   let enhanced = response
+    
     // Convert line breaks to proper HTML
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>')
