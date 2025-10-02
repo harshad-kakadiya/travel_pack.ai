@@ -17,8 +17,8 @@ export function Home() {
       {/* Hero Section */}
       <section className="relative px-4 sm:px-6 lg:px-8 py-20">
         <picture aria-hidden="true" className="absolute inset-0 block">
-          <source type="image/webp" srcSet="/mathew-schwartz-s87bBFZviAU-unsplash.webp" />
-          <img src="/mathew-schwartz-s87bBFZviAU-unsplash.jpg" alt="" className="w-full h-full object-cover" />
+          <source type="image/webp" srcSet="/images/mathew-schwartz-s87bBFZviAU-unsplash.webp" />
+          <img src="/images/mathew-schwartz-s87bBFZviAU-unsplash.jpg" alt="" className="w-full h-full object-cover" />
         </picture>
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
         
@@ -414,8 +414,8 @@ export function Home() {
       {/* CTA Section */}
       <section className="relative py-20">
         <picture aria-hidden="true" className="absolute inset-0 block">
-          <source type="image/webp" srcSet="/saud-edum-ECteVg5suUg-unsplash.webp" />
-          <img src="/saud-edum-ECteVg5suUg-unsplash.jpg" alt="" className="w-full h-full object-cover" />
+          <source type="image/webp" srcSet="/images/saud-edum-ECteVg5suUg-unsplash.webp" />
+          <img src="/images/saud-edum-ECteVg5suUg-unsplash.jpg" alt="" className="w-full h-full object-cover" />
         </picture>
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
         

@@ -142,7 +142,6 @@ export function Success() {
   const [verificationData, setVerificationData] = useState<VerifySessionResponse | null>(null);
   const [generatingBrief, setGeneratingBrief] = useState(false);
   const [briefData, setBriefData] = useState<GenerateBriefResponse | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -151,26 +150,10 @@ export function Success() {
       return;
     }
 
-    console.log('🔄 useEffect triggered with sessionId:', sessionId);
     verifyPayment();
   }, [sessionId]);
 
-
   const verifyPayment = async () => {
-    console.log('🔍 verifyPayment called');
-    
-    // Simple check to prevent duplicate calls
-    if (isVerifying || briefData) {
-      console.log('❌ Already processing or brief exists, skipping');
-      return;
-    }
-
-    console.log('✅ Proceeding with API call');
-
-    setIsVerifying(true);
-    setLoading(true);
-    setError('');
-
     try {
       // Get pending_session_id from localStorage (saved during checkout)
       const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';
@@ -178,12 +161,10 @@ export function Success() {
       if (!pendingSessionId) {
         setError('No pending session found. Please try creating a new travel pack.');
         setLoading(false);
-        setIsVerifying(false);
         return;
       }
 
       // Verify payment with Stripe
-      console.log('🌐 Making API call to verify-session-and-status...');
       const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-session-and-status`, {
         method: 'POST',
         headers: {
@@ -192,8 +173,8 @@ export function Success() {
         },
         body: JSON.stringify({
           session_id: sessionId,
-          pending_session_id: 'f2668173-0fc5-47ae-9593-12a707f79cc4'
-        })
+          pending_session_id: pendingSessionId
+        }),
       });
 
       if (!verifyResponse.ok) {
@@ -1254,7 +1235,7 @@ export function Success() {
               This usually takes 30-60 seconds. Please wait while we prepare your personalized travel plan.
             </p>
           </div>
-          
+
           {/* Affiliate Links Section */}
           <div className="max-w-2xl mx-auto">
             <AffiliateLinks />
@@ -1324,7 +1305,7 @@ export function Success() {
               <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto mb-8">
                 <div className="bg-blue-600 h-2 rounded-full animate-pulse w-3/4"></div>
               </div>
-              
+
               {/* Affiliate Links during brief generation */}
               <div className="max-w-lg mx-auto">
                 <AffiliateLinks />

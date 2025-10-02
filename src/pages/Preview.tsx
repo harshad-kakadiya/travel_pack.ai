@@ -7,7 +7,7 @@ import { ArrowLeft, Shield, Globe, Clock, CheckCircle, ExternalLink, Crown } fro
 import { createCheckoutSession } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
-
+import { v4 as uuidv4 } from "uuid";
 interface AffiliateProduct {
   id: string;
   title: string;
@@ -50,7 +50,51 @@ export function Preview() {
       setLoadingProducts(false);
     }
   };
+  const createPendingSession = async () => {
+    // Calculate trip duration for validation
+    if (tripData.startDate && tripData.endDate) {
+      const start = new Date(tripData.startDate);
+      const end = new Date(tripData.endDate);
+      const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
+      // Check trip duration limit (21 days maximum)
+      if (duration > 21) {
+        throw new Error(getTripDurationErrorMessage(tripData.persona));
+      }
+    }
+
+    const { data, error } = await supabase
+        .from('pending_sessions')
+        .insert({
+          id:uuidv4(),
+          created_at: new Date().toISOString(),
+          persona: tripData.persona,
+          passport_country_code: tripData.passportCountry?.code,
+          passport_country_label: tripData.passportCountry?.label,
+          start_date: tripData.startDate,
+          end_date: tripData.endDate,
+          trip_duration_days: Math.ceil((new Date(tripData.endDate!) - new Date(tripData.startDate!)) / (1000 * 60 * 60 * 24)) + 1,
+          destinations: tripData.destinations,
+          group_size: tripData.groupSize,
+          budget: tripData.budget,
+          activity_preferences: tripData.activityPreferences,
+          upload_keys: [], // Will be populated if user uploads files
+          client_ip: null, // Could be populated from headers if needed
+          customer_email:null,
+          has_paid:true,
+          plan_type:"Basic",
+          paid_at:new Date().toISOString(),
+          status:'Pending',
+          brief_id:uuidv4(),
+        })
+        .select('id')
+        .single();
+    if (error) {
+      throw new Error('Failed to create session');
+    }
+
+    return data.id;
+  };
   const handleCheckout = async (priceType: 'one_time' | 'yearly') => {
     if (!tripData || !tripData.persona) {
       alert('Please complete your trip planning first.');
@@ -61,12 +105,12 @@ export function Preview() {
     try {
       // In a real app, we'd first create a pending session
       const mockSessionId = 'mock-session-' + Date.now();
-      
+
       const { url } = await createCheckoutSession({
         client_reference_id: mockSessionId,
         price_type: priceType
       });
-      
+
       window.location.href = url;
     } catch (error) {
       console.error('Checkout failed:', error);
@@ -75,7 +119,58 @@ export function Preview() {
       setIsLoading(false);
     }
   };
+  const handleOneTimeClick = async () => {
+    handleCheckout('one_time');
 
+    try {
+      // First create a pending session in the database
+      const pendingSessionId = await createPendingSession();
+
+      // Store the pending session ID in localStorage for retrieval after payment
+      localStorage.setItem('pending_session_id', pendingSessionId);
+
+      // Also store trip data for later use
+      localStorage.setItem('travel-pack-trip-data', JSON.stringify(tripData));
+
+      const { url } = await createCheckoutSession({
+        plan: 'onetime',
+        pending_session_id: pendingSessionId
+      });
+
+      window.location.href = url;
+    } catch (error) {
+      console.error('Checkout failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleYearlyClick = async () => {
+    handleCheckout('yearly');
+
+    setIsLoading(true);
+    try {
+      // First create a pending session in the database
+      const pendingSessionId = await createPendingSession();
+
+      // Store the pending session ID in localStorage for retrieval after payment
+      localStorage.setItem('pending_session_id', pendingSessionId);
+
+      // Also store trip data for later use
+      localStorage.setItem('travel-pack-trip-data', JSON.stringify(tripData));
+
+      const { url } = await createCheckoutSession({
+        plan: 'yearly',
+        pending_session_id: pendingSessionId
+      });
+
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Checkout failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleAdminGenerate = async () => {
     if (!isAdmin || !isWhitelisted(adminEmail)) {
       alert('Admin access required');
@@ -167,7 +262,9 @@ export function Preview() {
                           Perfect for this specific trip
                         </p>
                         <button
-                          onClick={() => handleCheckout('one_time')}
+                          onClick={() => {
+                            handleOneTimeClick()
+                          }}
                           disabled={isLoading}
                           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
@@ -194,7 +291,9 @@ export function Preview() {
                           Unlimited travel packs for all your trips
                         </p>
                         <button
-                          onClick={() => handleCheckout('yearly')}
+                          onClick={() => {
+                            handleYearlyClick()
+                          }}
                           disabled={isLoading}
                           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
