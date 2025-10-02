@@ -41,27 +41,6 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {isAdmin && (
-              <div className="flex items-center space-x-2 bg-yellow-50 px-3 py-1 rounded-lg border border-yellow-200">
-                <User className="h-4 w-4 text-yellow-600" />
-                <input
-                  type="email"
-                  placeholder="Admin email"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  className="bg-transparent text-sm border-none outline-none placeholder-yellow-600 text-yellow-800 w-32"
-                />
-                {adminEmail && isWhitelisted(adminEmail) && (
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                )}
-                <Link
-                  to="/admin"
-                  className="text-yellow-600 hover:text-yellow-800 text-sm font-medium"
-                >
-                  Admin
-                </Link>
-              </div>
-            )}
 
             {user ? (
               <div className="flex items-center space-x-3">

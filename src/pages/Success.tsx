@@ -139,6 +139,7 @@ export function Success() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [verificationData, setVerificationData] = useState<VerifySessionResponse | null>(null);
   const [generatingBrief, setGeneratingBrief] = useState(false);
   const [briefData, setBriefData] = useState<GenerateBriefResponse | null>(null);
@@ -154,6 +155,7 @@ export function Success() {
   }, [sessionId]);
 
   const verifyPayment = async () => {
+    setIsVerifying(true);
     try {
       // Get pending_session_id from localStorage (saved during checkout)
       const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';

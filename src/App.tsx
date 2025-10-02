@@ -28,7 +28,6 @@ import { TripProvider } from './context/TripContext';
 import { AdminProvider } from './context/AdminContext';
 import { AuthProvider } from './context/AuthContext';
 import ResetPassword from './pages/ResetPassword';
-import { ProtectedRoute } from './components/ProtectedRoute';
 
 
 function App() {
@@ -44,11 +43,7 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/plan" element={
-                    <ProtectedRoute>
-                      <Plan />
-                    </ProtectedRoute>
-                  } />
+                  <Route path="/plan" element={<Plan />} />
                   <Route path="/examples" element={<Examples />} />
                   <Route path="/examples-checkout-step" element={<ExamplesCheckoutStep />} />
                   <Route path="/preview" element={<Preview />} />
