@@ -3,6 +3,8 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, Download, Loader, AlertCircle, ArrowLeft, FileText } from 'lucide-react';
 import { trackDownloadComplete } from '../components/Analytics';
 import { generatePDFWithPrint, downloadAsText, enhanceHTMLForPDF } from '../lib/pdfGenerator';
+import { AffiliateLinks } from '../components/AffiliateLinks';
+
 
 // Function to enhance AI response formatting
 function enhanceAIResponse(response: string): string {
@@ -140,6 +142,7 @@ export function Success() {
   const [verificationData, setVerificationData] = useState<VerifySessionResponse | null>(null);
   const [generatingBrief, setGeneratingBrief] = useState(false);
   const [briefData, setBriefData] = useState<GenerateBriefResponse | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -148,10 +151,26 @@ export function Success() {
       return;
     }
 
+    console.log('🔄 useEffect triggered with sessionId:', sessionId);
     verifyPayment();
   }, [sessionId]);
 
+
   const verifyPayment = async () => {
+    console.log('🔍 verifyPayment called');
+    
+    // Simple check to prevent duplicate calls
+    if (isVerifying || briefData) {
+      console.log('❌ Already processing or brief exists, skipping');
+      return;
+    }
+
+    console.log('✅ Proceeding with API call');
+
+    setIsVerifying(true);
+    setLoading(true);
+    setError('');
+
     try {
       // Get pending_session_id from localStorage (saved during checkout)
       const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';
@@ -159,10 +178,12 @@ export function Success() {
       if (!pendingSessionId) {
         setError('No pending session found. Please try creating a new travel pack.');
         setLoading(false);
+        setIsVerifying(false);
         return;
       }
 
       // Verify payment with Stripe
+      console.log('🌐 Making API call to verify-session-and-status...');
       const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-session-and-status`, {
         method: 'POST',
         headers: {
@@ -172,7 +193,7 @@ export function Success() {
         body: JSON.stringify({
           session_id: sessionId,
           pending_session_id: 'f2668173-0fc5-47ae-9593-12a707f79cc4'
-        }),
+        })
       });
 
       if (!verifyResponse.ok) {
@@ -195,10 +216,19 @@ export function Success() {
       console.error('Payment verification error:', err);
       setError(err instanceof Error ? err.message : 'Failed to verify payment');
       setLoading(false);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
   const generateTravelBrief = async (pendingSessionId: string) => {
+    // Prevent multiple simultaneous brief generation calls
+    if (generatingBrief || briefData) {
+      console.log('Already generating brief or brief exists, skipping duplicate call');
+      return;
+    }
+
+
     setGeneratingBrief(true);
 
     try {
@@ -287,9 +317,9 @@ export function Success() {
       // Save the processed trip data to localStorage for debugging
       localStorage.setItem('debug-openai-payload', JSON.stringify(openAITripData, null, 2));
 
-      // Call our new OpenAI function
-      const generateResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
+        // Call our new OpenAI function
+        const generateResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/openai`,
         {
           method: 'POST',
           headers: {
@@ -1166,6 +1196,11 @@ export function Success() {
       localStorage.removeItem('pending_session_id');
 
     } catch (err) {
+      // Don't show error if request was aborted
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('Brief generation request was aborted');
+        return;
+      }
       console.error('❌ OpenAI brief generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate travel brief');
     } finally {
@@ -1206,12 +1241,24 @@ export function Success() {
   };
 
 
-  if (loading) {
+  if (loading && !briefData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Verifying your payment...</p>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {isVerifying ? 'Verifying your payment...' : 'Processing your request...'}
+            </h1>
+            <p className="text-gray-600">
+              This usually takes 30-60 seconds. Please wait while we prepare your personalized travel plan.
+            </p>
+          </div>
+          
+          {/* Affiliate Links Section */}
+          <div className="max-w-2xl mx-auto">
+            <AffiliateLinks />
+          </div>
         </div>
       </div>
     );
@@ -1265,17 +1312,22 @@ export function Success() {
             </div>
           )}
 
-          {generatingBrief ? (
+          {generatingBrief && !briefData ? (
             <div className="py-8">
               <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 Generating Your AI Travel Brief...
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-6">
                 Our advanced AI is analyzing your preferences and crafting your personalized travel recommendations. This usually takes 30-60 seconds.
               </p>
-              <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto">
+              <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto mb-8">
                 <div className="bg-blue-600 h-2 rounded-full animate-pulse w-3/4"></div>
+              </div>
+              
+              {/* Affiliate Links during brief generation */}
+              <div className="max-w-lg mx-auto">
+                <AffiliateLinks />
               </div>
             </div>
           ) : briefData ? (
@@ -1418,9 +1470,10 @@ export function Success() {
               </p>
               <button
                 onClick={verifyPayment}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium"
+                disabled={isVerifying || generatingBrief || !!briefData}
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors"
               >
-                Check Status
+                {isVerifying ? 'Checking...' : (briefData ? 'Already Generated' : 'Check Status')}
               </button>
             </div>
           )}
