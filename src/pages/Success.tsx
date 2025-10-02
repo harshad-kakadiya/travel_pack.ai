@@ -105,6 +105,89 @@ function createStructuredTravelBrief(briefData: any): string {
   return html;
 }
 
+// Example-page styled full HTML using structured JSON
+function buildExampleStyledHTML(
+  briefData: any,
+  meta: {
+    persona?: string;
+    destinations?: Array<{ name: string; daysAllocated?: number }>;
+    startDate?: string;
+    endDate?: string;
+  }
+): string {
+  const destinationTitle = (meta.destinations || [])
+    .map(d => d.name)
+    .join(', ');
+  const durationDays = (meta.destinations || []).reduce((sum, d) => sum + (d.daysAllocated || 0), 0);
+  const title = `Travel Pack – ${destinationTitle}${durationDays ? ` ${durationDays} Days` : ''}`;
+
+  // Compose ordered content from structured fields
+  const sectionsOrder: Array<{ key: string; isArray?: boolean }> = [
+    { key: 'cover_html' },
+    { key: 'intro_html' },
+    { key: 'day_by_day_html', isArray: true },
+    { key: 'activities_html' },
+    { key: 'food_html' },
+    { key: 'packing_html' },
+    { key: 'safety_html' },
+    { key: 'visa_html' },
+    { key: 'budget_html' },
+    { key: 'language_html' },
+    { key: 'persona_html' },
+    { key: 'weather_html' },
+    { key: 'transport_html' },
+    { key: 'booking_html' },
+    { key: 'accessibility_html' },
+    { key: 'money_html' },
+    { key: 'final_html' }
+  ];
+
+  let concatenated = '';
+  for (const section of sectionsOrder) {
+    const value = briefData[section.key];
+    if (!value) continue;
+    if (section.isArray && Array.isArray(value)) {
+      concatenated += value.join('\n');
+    } else if (typeof value === 'string') {
+      concatenated += value;
+    }
+  }
+
+  const themeBanner = briefData.theme_title
+    ? `<div style="background:#eef2ff;border-left:4px solid #6366f1;padding:12px 16px;border-radius:8px;margin:16px 0;">
+         <strong style="color:#1e3a8a;">${briefData.theme_title}</strong>
+       </div>`
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: #fff; }
+    h1 { color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }
+    h2 { color: #1e40af; margin-top: 30px; padding-left: 10px; border-left: 4px solid #3b82f6; }
+    h3 { color: #1e3a8a; margin-top: 25px; }
+    .meta { margin: 10px 0 20px; color: #475569; }
+    .meta strong { color: #334155; }
+    @media print { @page { margin: 15mm; } }
+  </style>
+</head>
+<body>
+  <h1>🌍 ${title}</h1>
+  <div class="meta">
+    ${meta.persona ? `<p><strong>Persona:</strong> ${meta.persona}</p>` : ''}
+    ${meta.startDate && meta.endDate ? `<p><strong>Dates:</strong> ${meta.startDate} – ${meta.endDate}</p>` : ''}
+    ${destinationTitle ? `<p><strong>Destinations:</strong> ${destinationTitle}</p>` : ''}
+  </div>
+  ${themeBanner}
+  ${concatenated}
+</body>
+</html>`;
+}
+
 interface VerifySessionResponse {
   has_paid: boolean;
   reason: string;
@@ -302,7 +385,7 @@ export function Success() {
 
         // Call our new OpenAI function
         const generateResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/openai`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
         {
           method: 'POST',
           headers: {
@@ -352,8 +435,16 @@ export function Success() {
         processedResponse = enhanceAIResponse(openAIResponse);
       }
 
+      // Prefer example-page style when structured JSON is present
+      const exampleHTML = travelBriefData ? buildExampleStyledHTML(travelBriefData, {
+        persona: openAITripData.persona,
+        destinations: openAITripData.destinations,
+        startDate: openAITripData.startDate,
+        endDate: openAITripData.endDate
+      }) : null;
+
       // Create beautiful, modern HTML formatted response for display and PDF
-      const formattedHTML = `
+      const formattedHTML = exampleHTML || `
         <!DOCTYPE html>
         <html lang="en">
         <head>
