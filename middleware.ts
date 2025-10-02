@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminTokenFromRequest, isAdminTokenValid } from './src/lib/adminAuth.ts';
+import { getAdminTokenFromRequest, isAdminTokenValid } from './src/lib/adminAuth';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
