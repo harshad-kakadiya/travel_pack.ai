@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 TravelPack.ai Admin Dashboard Setup');
+console.log('🚀 TravelBrief.ai Admin Dashboard Setup');
 console.log('=====================================\n');
 
 // Check if .env.local already exists

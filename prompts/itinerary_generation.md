@@ -6,5 +6,5 @@ For each day d = 1..N:
 - Do not skip or duplicate day numbers.
 
 At the very top of the document include:
-`Open this trip online: https://www.travelpack.ai/itinerary/{trip_id}/day/1`
+`Open this trip online: https://www.travelbrief.ai/itinerary/{trip_id}/day/1`
 (Use a placeholder if the URL is not yet known at generation time.)

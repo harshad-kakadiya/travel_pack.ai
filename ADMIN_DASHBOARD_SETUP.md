@@ -1,7 +1,7 @@
-# TravelPack.ai Admin Dashboard Setup Guide
+# TravelBrief.ai Admin Dashboard Setup Guide
 
 ## Overview
-This guide will help you set up a comprehensive admin dashboard for TravelPack.ai with password protection, KPIs, blog CMS, and Stripe revenue tracking.
+This guide will help you set up a comprehensive admin dashboard for TravelBrief.ai with password protection, KPIs, blog CMS, and Stripe revenue tracking.
 
 ## Features Implemented
 - ✅ Password-protected admin login

@@ -41,7 +41,7 @@ serve(async (req) => {
 
     if (error) return json({ error: error.message }, { status: 400 });
 
-    const base = Deno.env.get("PUBLIC_BASE_URL") ?? "https://www.travelpack.ai";
+    const base = Deno.env.get("PUBLIC_BASE_URL") ?? "https://www.travelbrief.ai";
     const link = `${base}/itinerary/${data.public_id}/day/1`;
     return json({ publicId: data.public_id, link }, { status: 200 });
   } catch (e) {

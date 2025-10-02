@@ -141,7 +141,7 @@ export function Features() {
             {features.map((feature, index) => (
               <Reveal key={index} variant="fade-up" delay={index * 60}>
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
-                  <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full mb-3 inline-block">
+                  <span className="self-start inline-flex items-center bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full mb-3 ring-1 ring-gray-200 shadow-sm">
                     {feature.category}
                   </span>
                   <div className="text-2xl mb-4">{feature.emoji}</div>

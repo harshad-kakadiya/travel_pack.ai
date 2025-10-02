@@ -10,7 +10,7 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
               <span className="text-2xl">✈️</span>
-              <span className="text-lg font-bold text-gray-900">TravelPack.ai</span>
+              <span className="text-lg font-bold text-gray-900">TravelBrief.ai</span>
             </Link>
             <p className="text-gray-600 text-sm max-w-md">
               Generate personalized, AI-powered travel briefs that work offline.
@@ -58,7 +58,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-center text-sm text-gray-500">
-            © 2025 TravelPack.ai. All rights reserved.
+            © 2025 TravelBrief.ai. All rights reserved.
           </p>
         </div>
       </div>

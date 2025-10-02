@@ -10,7 +10,7 @@ export function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const handleSignInClick = () => {
+  const handleSignUpClick = () => {
     setAuthModalOpen(true);
   };
 
@@ -62,7 +62,7 @@ export function Header() {
             ) : (
               <nav className="hidden md:flex items-center space-x-4">
                 <button
-                  onClick={handleSignInClick}
+                  onClick={handleSignUpClick}
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Sign up
@@ -82,6 +82,7 @@ export function Header() {
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
+        startInSignUp
       />
 
       <UserProfile

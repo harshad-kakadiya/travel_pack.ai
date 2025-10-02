@@ -470,7 +470,7 @@ export function ExamplesCheckoutStep() {
   return (
     <>
       <SEOHead 
-        title="TravelPack.ai Examples – See Sample Travel Briefs"
+        title="TravelBrief.ai Examples – See Sample Travel Briefs"
         description="Browse example travel packs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
       />
       <div className="min-h-screen bg-gray-50 py-8">
@@ -500,7 +500,7 @@ export function ExamplesCheckoutStep() {
               Travel Pack Examples
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl">
-              See how TravelPack.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
+              See how TravelBrief.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
             </p>
           </div>
 

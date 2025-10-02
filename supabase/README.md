@@ -13,7 +13,7 @@
 3) Set Function env vars (Studio → Project Settings → Functions → Environment Variables):
    SUPABASE_URL = https://<YOUR_REF>.supabase.co
    SUPABASE_SERVICE_ROLE_KEY = <service role key>
-   PUBLIC_BASE_URL = https://www.travelpack.ai
+   PUBLIC_BASE_URL = https://www.travelbrief.ai
 
 4) Schedule purge (Studio → Edge Functions → Schedules):
    Run "purge-itineraries" daily, e.g. cron "0 3 * * *".
@@ -29,7 +29,7 @@
 - `STRIPE_WEBHOOK_SECRET` — the `whsec_...` from your Stripe webhook endpoint
 - `SUPABASE_URL` — https://<YOUR_REF>.supabase.co
 - `SUPABASE_SERVICE_ROLE_KEY` — service role key
-- `PUBLIC_BASE_URL` — e.g., https://www.travelpack.ai
+- `PUBLIC_BASE_URL` — e.g., https://www.travelbrief.ai
 
 ### Deploy
 ```bash

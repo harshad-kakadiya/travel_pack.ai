@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  startInSignUp?: boolean;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, startInSignUp }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,6 +19,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const { signIn, signUp, resetPassword } = useAuth();
+
+  // When modal opens, optionally start in Sign Up mode
+  useEffect(() => {
+    if (isOpen) {
+      setIsSignUp(!!startInSignUp);
+    }
+  }, [isOpen, startInSignUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

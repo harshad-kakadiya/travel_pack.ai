@@ -62,7 +62,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Email template
-    const emailSubject = `Your TravelPack.ai is Ready! 🎒 ${destinations ? `- ${destinations}` : ''}`;
+    const emailSubject = `Your TravelBrief.ai is Ready! 🎒 ${destinations ? `- ${destinations}` : ''}`;
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -84,7 +84,7 @@ Deno.serve(async (req: Request) => {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎒 Your TravelPack.ai is Ready!</h1>
+            <h1>🎒 Your TravelBrief.ai is Ready!</h1>
             <p>Your personalized travel brief has been generated and is ready for download.</p>
         </div>
         

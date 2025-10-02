@@ -17,7 +17,7 @@ function cors(methods: string) {
   };
 }
 
-// Fixed price IDs for TravelPack.ai (test or live depend on your STRIPE_SECRET_KEY env)
+// Fixed price IDs for TravelBrief.ai (test or live depend on your STRIPE_SECRET_KEY env)
 const PRICE_ONETIME = "price_1SAFT3PPr9IU2n0HEGf02sj4";
 const PRICE_YEARLY  = "price_1SAFW9PPr9IU2n0Huar8uTwj";
 
@@ -36,8 +36,8 @@ serve(async (req) => {
     if (!secret) return json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
 
     // Allow env override but default to the provided URLs
-    const successUrl = Deno.env.get("STRIPE_SUCCESS_URL") ?? "https://travelpack.ai/success?session_id={CHECKOUT_SESSION_ID}";
-    const cancelUrl  = Deno.env.get("STRIPE_CANCEL_URL")  ?? "https://travelpack.ai/cancel";
+    const successUrl = Deno.env.get("STRIPE_SUCCESS_URL") ?? "https://travelbrief.ai/success?session_id={CHECKOUT_SESSION_ID}";
+    const cancelUrl  = Deno.env.get("STRIPE_CANCEL_URL")  ?? "https://travelbrief.ai/cancel";
 
     const body = await req.json().catch(() => ({}));
     const { plan, tripId, tripTitle, startDate, endDate, days } = body ?? {};

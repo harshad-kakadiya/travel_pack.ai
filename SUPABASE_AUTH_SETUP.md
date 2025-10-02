@@ -1,6 +1,6 @@
 # Supabase Authentication Setup Guide
 
-This guide will help you set up Supabase authentication for your TravelPack.ai project.
+This guide will help you set up Supabase authentication for your TravelBrief.ai project.
 
 ## 1. Supabase Dashboard Configuration
 

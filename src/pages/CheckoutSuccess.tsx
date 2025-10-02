@@ -126,7 +126,7 @@ export function CheckoutSuccess() {
             <div className="py-8">
               <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Generating Your TravelPack.ai...
+                Generating Your TravelBrief.ai...
               </h2>
               <p className="text-gray-600 mb-4">
                 Our AI is crafting your personalized travel brief. This usually takes 1-2 minutes.

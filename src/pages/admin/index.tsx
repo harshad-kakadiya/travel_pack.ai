@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   return (
     <>
       <Head>
-        <title>Admin Dashboard - TravelPack.ai</title>
+        <title>Admin Dashboard - TravelBrief.ai</title>
       </Head>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}

@@ -20,7 +20,7 @@ export function Home() {
           <img src="/images/mathew-schwartz-s87bBFZviAU-unsplash.jpg" alt="" className="w-full h-full object-cover" />
         </picture>
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
-        
+
         {/* Content */}
         <div className="relative z-10">
           <div className="max-w-4xl mx-auto text-center">
@@ -30,13 +30,13 @@ export function Home() {
                 <span className="text-amber-500"> Personalized</span>
               </h1>
             </Reveal>
-            
+
             <Reveal variant="fade-up" delay={200}>
               <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto leading-relaxed">
                 Your trip, planned in minutes. A complete AI-curated brief with itineraries, safety tips, packing essentials and more, beautifully formatted as a PDF.
               </p>
             </Reveal>
-            
+
             <Reveal variant="fade-up" delay={400}>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                 <Link
@@ -99,7 +99,7 @@ export function Home() {
                   Persona-Based Planning
                 </h3>
                 <p className="text-gray-600">
-                  Whether you're a first-time traveler or a seasoned explorer, 
+                  Whether you're a first-time traveler or a seasoned explorer,
                   get advice tailored to your experience level and travel style.
                 </p>
               </div>
@@ -112,7 +112,7 @@ export function Home() {
                   Complete Itineraries
                 </h3>
                 <p className="text-gray-600">
-                  Day-by-day plans with must-see attractions, local tips, 
+                  Day-by-day plans with must-see attractions, local tips,
                   and hidden gems based on your trip duration and interests.
                 </p>
               </div>
@@ -125,7 +125,7 @@ export function Home() {
                   Safety & Visa Info
                 </h3>
                 <p className="text-gray-600">
-                  Passport-specific visa requirements, safety tips, 
+                  Passport-specific visa requirements, safety tips,
                   and local customs to keep you prepared and secure.
                 </p>
               </div>
@@ -138,7 +138,7 @@ export function Home() {
                   Smart Packing Lists
                 </h3>
                 <p className="text-gray-600">
-                  Climate-aware packing suggestions and travel essentials 
+                  Climate-aware packing suggestions and travel essentials
                   customized for your destination and travel dates.
                 </p>
               </div>
@@ -151,7 +151,7 @@ export function Home() {
                   Budget Planning
                 </h3>
                 <p className="text-gray-600">
-                  Cost breakdowns, money-saving tips, and budget-appropriate 
+                  Cost breakdowns, money-saving tips, and budget-appropriate
                   recommendations for your chosen spending level.
                 </p>
               </div>
@@ -309,7 +309,7 @@ export function Home() {
         </div>
       </Reveal>
 
-      
+
 
       {/* Comprehensive Features Section */}
       <Reveal as="section" className="bg-gray-50 py-20" variant="fade-up">
@@ -326,7 +326,7 @@ export function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {features.map((feature, index) => (
               <Reveal key={index} variant="fade-up" delay={index * 60}>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-full ">
                   <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full mb-3 inline-block">
                     {feature.category}
                   </span>
@@ -351,7 +351,7 @@ export function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12">
               Trusted by Travelers Worldwide
             </h2>
-            
+
             {/* Stats Row */}
             <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16" variant="fade-up" delay={200}>
               <div className="text-center">
@@ -362,7 +362,7 @@ export function Home() {
                   Travel packs created
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">
                   4.9/5
@@ -371,7 +371,7 @@ export function Home() {
                   Average rating
                 </p>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">
                   150+
@@ -383,7 +383,7 @@ export function Home() {
             </Reveal>
           </Reveal>
 
-          {/* Why TravelPack.ai Sub-section */}
+          {/* Why TravelBrief.ai Sub-section */}
           <Reveal className="text-center mb-12" variant="fade">
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
               Why TravelBrief.ai?
@@ -441,7 +441,7 @@ export function Home() {
           <img src="/images/saud-edum-ECteVg5suUg-unsplash.jpg" alt="" className="w-full h-full object-cover" />
         </picture>
         <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
-        
+
         {/* Content */}
         <div className="relative z-10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -450,7 +450,7 @@ export function Home() {
                 Ready to Plan Your Perfect Trip?
               </h2>
               <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join thousands of travelers who trust Travel Brief for their adventures. 
+                Join thousands of travelers who trust Travel Brief for their adventures.
                 Get started in minutes.
               </p>
                 <Link

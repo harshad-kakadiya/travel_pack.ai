@@ -36,7 +36,7 @@ serve(async (req) => {
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const publicBase = Deno.env.get("PUBLIC_BASE_URL") ?? "https://www.travelpack.ai";
+  const publicBase = Deno.env.get("PUBLIC_BASE_URL") ?? "https://www.travelbrief.ai";
 
   if (!secretKey || !webhookSecret || !supabaseUrl || !supabaseServiceKey) {
     return json({ error: "Missing required environment variables" }, { status: 500 });

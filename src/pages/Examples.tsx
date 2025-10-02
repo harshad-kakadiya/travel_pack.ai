@@ -453,7 +453,7 @@ export function Examples() {
               Travel Pack Examples
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl">
-              See how TravelPack.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
+              See how TravelBrief.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
             </p>
           </Reveal>
 

@@ -1,7 +1,7 @@
 # Stripe Integration Setup Guide
 
 ## Overview
-This guide will help you set up Stripe payment integration with your TravelPack.ai project using Supabase Edge Functions.
+This guide will help you set up Stripe payment integration with your TravelBrief.ai project using Supabase Edge Functions.
 
 ## Prerequisites
 - Stripe account (test mode for development)
