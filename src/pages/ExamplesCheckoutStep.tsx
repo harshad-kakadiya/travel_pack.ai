@@ -533,7 +533,7 @@ export function ExamplesCheckoutStep() {
                 {examplesByPersona[persona]
                   ?.slice(0, expandedPersonas.has(persona) ? undefined : window.innerWidth < 640 ? 2 : undefined)
                   .map((pack) => (
-                  <div key={pack.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer">
+                  <div key={pack.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer h-full flex flex-col">
                     <div className="aspect-video relative overflow-hidden">
                       <img 
                         src={pack.cover} 
@@ -556,7 +556,7 @@ export function ExamplesCheckoutStep() {
                         </span>
                       </div>
                     </div>
-                    <div className="p-4">
+                    <div className="p-4 flex flex-col h-full">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
                         {pack.title}
                       </h3>
@@ -565,7 +565,7 @@ export function ExamplesCheckoutStep() {
                       <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
                       <button
                         onClick={() => openPreview(pack)}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                        className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                       >
                         Preview Pack
                         <ExternalLink className="h-4 w-4" />

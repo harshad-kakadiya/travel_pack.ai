@@ -10,8 +10,8 @@ export function Features() {
   return (
     <>
       <SEOHead
-        title="Features – TravelPack.ai"
-        description="From personalized itineraries to safety guidance, packing lists, and offline access, see everything TravelPack.ai offers."
+        title="Features – TravelBrief.ai"
+        description="From personalized itineraries to safety guidance, packing lists, and offline access, see everything TravelBrief.ai offers."
       />
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,8 +63,8 @@ export function Features() {
         </Reveal>
 
         {/* Feature Grid */}
-        <Reveal className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" variant="fade-up">
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+        <Reveal className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch mb-16" variant="fade-up">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">🗺️</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Complete Itineraries
@@ -75,7 +75,7 @@ export function Features() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">🛡️</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Safety & Security
@@ -86,7 +86,7 @@ export function Features() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">🛂</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Visa & Documentation
@@ -97,7 +97,7 @@ export function Features() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">⏰</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Time-Optimized Planning
@@ -108,7 +108,7 @@ export function Features() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">👥</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Persona-Based Advice
@@ -119,7 +119,7 @@ export function Features() {
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-sm h-full flex flex-col">
             <div className="text-4xl mb-4">📄</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Offline-Ready Format
@@ -137,10 +137,10 @@ export function Features() {
             Tailored to Your Travel Style
           </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {features.map((feature, index) => (
               <Reveal key={index} variant="fade-up" delay={index * 60}>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
                   <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full mb-3 inline-block">
                     {feature.category}
                   </span>

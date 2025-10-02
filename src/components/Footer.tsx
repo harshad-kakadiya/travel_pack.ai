@@ -13,11 +13,11 @@ export function Footer() {
               <span className="text-lg font-bold text-gray-900">TravelPack.ai</span>
             </Link>
             <p className="text-gray-600 text-sm max-w-md">
-              Generate personalized, AI-powered travel briefs that work offline. 
+              Generate personalized, AI-powered travel briefs that work offline.
               Perfect for every type of traveler.
             </p>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
             <div className="space-y-3">
@@ -30,18 +30,19 @@ export function Footer() {
               <Link to="/examples" className="block text-sm text-gray-600 hover:text-gray-900">
                 Examples
               </Link>
+              <Link to="/blog" className="block text-sm text-gray-600 hover:text-gray-900">
+                Blog
+              </Link>
             </div>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
             <div className="space-y-3">
               <Link to="/support" className="block text-sm text-gray-600 hover:text-gray-900">
                 Help Center
               </Link>
-              <Link to="/blog" className="block text-sm text-gray-600 hover:text-gray-900">
-                Blog
-              </Link>
+
               <Link to="/privacy" className="block text-sm text-gray-600 hover:text-gray-900">
                 Privacy
               </Link>
@@ -54,7 +55,7 @@ export function Footer() {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-center text-sm text-gray-500">
             © 2025 TravelPack.ai. All rights reserved.

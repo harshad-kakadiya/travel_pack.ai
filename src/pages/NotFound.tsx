@@ -8,8 +8,8 @@ export function NotFound() {
   return (
     <>
       <SEOHead
-        title="Page Not Found – TravelPack.ai"
-        description="The page you're looking for doesn't exist. Return to TravelPack.ai to plan your perfect trip."
+        title="Page Not Found – TravelBrief.ai"
+        description="The page you're looking for doesn't exist. Return to TravelBrief.ai to plan your perfect trip."
       />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">

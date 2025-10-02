@@ -5,8 +5,8 @@ export function RefundPolicy() {
   return (
     <>
       <SEOHead
-        title="Refund Policy – TravelPack.ai"
-        description="Read the TravelPack.ai Refund Policy."
+        title="Refund Policy – TravelBrief.ai"
+        description="Read the TravelBrief.ai Refund Policy."
       />
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,9 +20,9 @@ export function RefundPolicy() {
                 Effective Date: September 22, 2025
               </p>
 
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. One-Time Travel Packs</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. One-Time Travel Briefs</h2>
               <p className="text-gray-600 mb-6">
-                Due to the instant digital nature of our product, refunds are generally not available once your travel pack is generated. If you encounter an error or did not receive your PDF, please contact support and we will resolve the issue.
+                Due to the instant digital nature of our product, refunds are generally not available once your travel brief is generated. If you encounter an error or did not receive your PDF, please contact support and we will resolve the issue.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Yearly Subscriptions</h2>
@@ -34,11 +34,11 @@ export function RefundPolicy() {
 
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Technical Issues</h2>
               <p className="text-gray-600 mb-6">
-                If a technical failure prevents generation of your travel pack, we will either regenerate it or issue a refund at our discretion.
+                If a technical failure prevents generation of your travel brief, we will either regenerate it or issue a refund at our discretion.
               </p>
 
               <p className="text-gray-600 mb-6">
-                For support or refund inquiries, email: support@travelpack.ai
+                For support or refund inquiries, email: contact@travelbrief.ai
               </p>
             </div>
           </div>
@@ -60,15 +60,15 @@ export function RefundPolicy() {
                 Our Commitment
               </h2>
               <p className="text-gray-600 mb-6">
-                We want you to be completely satisfied with your TravelPack.ai. If you're not happy
+                We want you to be completely satisfied with your TravelBrief.ai. If you're not happy
                 with your purchase, we offer a straightforward refund policy to ensure your peace of mind.
               </p>
 
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                One-Time Travel Packs
+                One-Time Travel Briefs
               </h2>
               <p className="text-gray-600 mb-4">
-                For one-time TravelPack.ai purchases:
+                For one-time TravelBrief.ai purchases:
               </p>
               <ul className="list-disc pl-6 text-gray-600 mb-6">
                 <li>Full refund available within 7 days of purchase</li>
@@ -97,7 +97,7 @@ export function RefundPolicy() {
                 To request a refund:
               </p>
               <ol className="list-decimal pl-6 text-gray-600 mb-6">
-                <li>Email us at support@travelpack.ai</li>
+                <li>Email us at contact@travelbrief.ai</li>
                 <li>Include your order number or email address used for purchase</li>
                 <li>Briefly explain the reason for your refund request</li>
                 <li>We'll process your request within 24 hours</li>
@@ -128,7 +128,7 @@ export function RefundPolicy() {
               </h2>
               <p className="text-gray-600 mb-6">
                 If you have any questions about our refund policy or need assistance with a refund request, 
-                please contact us at support@travelpack.ai. We're here to help!
+                please contact us at contact@travelbrief.ai. We're here to help!
               </p>
             </div>
           </div>

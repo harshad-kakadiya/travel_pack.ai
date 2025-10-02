@@ -1,16 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, MapPin, Clock, Shield, Globe, Calendar, Navigation, Phone, FileText, Package, AlertTriangle, MessageCircle, CreditCard, Map, User, Camera, ShoppingBag } from 'lucide-react';
+import { ArrowRight, CheckCircle, MapPin, Clock, Shield, Globe, Calendar, Navigation, Phone, FileText, Package, AlertTriangle, MessageCircle, CreditCard, Map, User, Camera, ShoppingBag, Star } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { features } from '../data/features';
 import Reveal from '../components/Reveal';
-import { AuthExample } from '../components/AuthExample';
 
 export function Home() {
   return (
     <>
       <SEOHead
-        title="TravelPack.ai – Your Trip, Planned in Minutes"
+        title="TravelBrief.ai – Your Trip, Planned in Minutes"
         description="Generate personalized, AI-powered travel briefs with itineraries, packing lists, safety info, and offline tips. Tailored for every type of traveler."
       />
     <div className="min-h-screen">
@@ -34,7 +33,7 @@ export function Home() {
             
             <Reveal variant="fade-up" delay={200}>
               <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Your trip, planned in minutes. A complete AI-curated guide with itineraries, safety tips, packing essentials and more, beautifully formatted as a PDF.
+                Your trip, planned in minutes. A complete AI-curated brief with itineraries, safety tips, packing essentials and more, beautifully formatted as a PDF.
               </p>
             </Reveal>
             
@@ -44,12 +43,12 @@ export function Home() {
                   to="/plan"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-105 shadow-lg"
                 >
-                  Start Your Travel Pack
+                  Start Your Travel Brief
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   to="/examples"
-                  className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg border-2 border-gray-200 transition-colors"
+                  className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg transition-colors"
                 >
                   See Examples
                 </Link>
@@ -92,9 +91,9 @@ export function Home() {
             </p>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             <Reveal variant="fade-up" delay={0}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">👥</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Persona-Based Planning
@@ -107,7 +106,7 @@ export function Home() {
             </Reveal>
 
             <Reveal variant="fade-up" delay={60}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">🗺️</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Complete Itineraries
@@ -120,7 +119,7 @@ export function Home() {
             </Reveal>
 
             <Reveal variant="fade-up" delay={120}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">🛂</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Safety & Visa Info
@@ -133,7 +132,7 @@ export function Home() {
             </Reveal>
 
             <Reveal variant="fade-up" delay={180}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">🎒</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Smart Packing Lists
@@ -146,7 +145,7 @@ export function Home() {
             </Reveal>
 
             <Reveal variant="fade-up" delay={240}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">💸</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Budget Planning
@@ -159,13 +158,13 @@ export function Home() {
             </Reveal>
 
             <Reveal variant="fade-up" delay={300}>
-              <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="bg-gray-50 p-8 rounded-2xl h-full flex flex-col">
                 <div className="text-4xl mb-4">📑</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Upload Your Travel Docs
                 </h3>
                 <p className="text-gray-600">
-                  Upload your tickets and bookings to instantly create a complete AI-curated Travel Pack — no extra effort needed.
+                  Upload your tickets and bookings to instantly create a complete AI-curated Travel Brief — no extra effort needed.
                 </p>
               </div>
             </Reveal>
@@ -195,6 +194,13 @@ export function Home() {
                     New Traveler
                   </span>
                 </div>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
+                </div>
                 <blockquote className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                   "As a first-time traveler, this gave me confidence from the airport to my hotel. No stress at all."
                 </blockquote>
@@ -211,6 +217,13 @@ export function Home() {
                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                     Experienced Traveler
                   </span>
+                </div>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
                 </div>
                 <blockquote className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                   "I've been to 30+ countries, but this packed everything I needed into one place. Saved me hours."
@@ -229,6 +242,13 @@ export function Home() {
                     Solo Female Traveler
                   </span>
                 </div>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
+                </div>
                 <blockquote className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                   "Safety tips and vetted services made me feel secure exploring on my own."
                 </blockquote>
@@ -245,6 +265,13 @@ export function Home() {
                   <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
                     Minor / Under 18
                   </span>
+                </div>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
                 </div>
                 <blockquote className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                   "Traveling with my parents was so much easier when we had all the rules and contacts ready."
@@ -263,6 +290,13 @@ export function Home() {
                     Family Traveler
                   </span>
                 </div>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
+                </div>
                 <blockquote className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                   "Packing lists and child-friendly plans were a lifesaver. Our kids had the best trip ever."
                 </blockquote>
@@ -275,18 +309,7 @@ export function Home() {
         </div>
       </Reveal>
 
-      {/* Authentication Example - Remove this in production */}
-      <section className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Demo</h2>
-            <p className="text-gray-600 mb-6">
-              This section demonstrates the authentication system. Try signing in/up using the buttons in the header.
-            </p>
-          </div>
-          <AuthExample />
-        </div>
-      </section>
+      
 
       {/* Comprehensive Features Section */}
       <Reveal as="section" className="bg-gray-50 py-20" variant="fade-up">
@@ -295,15 +318,15 @@ export function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               What's Included in Your Smart Travel PDF
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Every travel pack includes these essential features, personalized for your specific trip and travel style. No hidden extras, no upsells.
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Every travel brief includes these essential features, personalized for your specific trip and travel style. No hidden extras, no upsells.
             </p>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {features.map((feature, index) => (
               <Reveal key={index} variant="fade-up" delay={index * 60}>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
                   <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full mb-3 inline-block">
                     {feature.category}
                   </span>
@@ -363,7 +386,7 @@ export function Home() {
           {/* Why TravelPack.ai Sub-section */}
           <Reveal className="text-center mb-12" variant="fade">
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-              Why TravelPack.ai?
+              Why TravelBrief.ai?
             </h3>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               No more scattered bookings, forgotten details, or last-minute panic. Everything you need, beautifully organized.
@@ -379,7 +402,7 @@ export function Home() {
                   Personalized for You
                 </h4>
                 <p className="text-gray-600">
-                  Every pack is tailored to your travel style, from solo female to family adventures.
+                  Every brief is tailored to your travel style, from solo female to family adventures.
                 </p>
               </div>
             </Reveal>
@@ -427,14 +450,14 @@ export function Home() {
                 Ready to Plan Your Perfect Trip?
               </h2>
               <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join thousands of travelers who trust Travel Pack for their adventures. 
+                Join thousands of travelers who trust Travel Brief for their adventures. 
                 Get started in minutes.
               </p>
-              <Link
+                <Link
                 to="/plan"
                 className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg inline-flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg"
               >
-                Start Your Travel Pack
+                Start Your Travel Brief
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Reveal>

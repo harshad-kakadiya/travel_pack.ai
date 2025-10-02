@@ -92,7 +92,7 @@ export function CheckoutSuccess() {
           <div className="text-red-600 mb-4">⚠️</div>
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <a href="mailto:support@travelpack.ai" className="text-blue-600 hover:text-blue-800">
+          <a href="mailto:contact@travelbrief.ai" className="text-blue-600 hover:text-blue-800">
             Contact Support
           </a>
         </div>
@@ -152,7 +152,7 @@ export function CheckoutSuccess() {
                 <div className="text-sm text-gray-600">
                   <p>We've also emailed you the link for future access.</p>
                   <p className="mt-2">
-                    Having trouble? <a href="mailto:support@travelpack.ai" className="text-blue-600 hover:text-blue-800">Contact support</a>
+                    Having trouble? <a href="mailto:contact@travelbrief.ai" className="text-blue-600 hover:text-blue-800">Contact support</a>
                   </p>
                 </div>
               </div>

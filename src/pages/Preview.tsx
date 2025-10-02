@@ -183,7 +183,7 @@ export function Preview() {
 
   return (
     <>
-      <SEOHead title="Preview — Travel Pack" description="Preview your personalized Travel Pack before purchase." image="/images/og-default.png" />
+      <SEOHead title="Preview — Travel Brief" description="Preview your personalized Travel Brief before purchase." image="/images/og-default.png" />
       <div className="min-h-screen bg-gray-50">
       {/* Progress Header */}
       <div className="bg-white border-b border-gray-200">
@@ -214,7 +214,7 @@ export function Preview() {
             <Reveal className="bg-white rounded-lg shadow-sm overflow-hidden" variant="fade-up">
               <Reveal className="p-6 border-b border-gray-200" variant="fade">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Your Personalized Travel Pack is Ready to Unlock 🎒✨
+                  Your Personalized Travel Brief is Ready to Unlock 🎒✨
                 </h1>
                 <p className="text-gray-600">
                   A complete itinerary, safety info, packing lists, and must-sees — beautifully formatted for offline use.
@@ -248,14 +248,14 @@ export function Preview() {
                 <div className="absolute inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-10 flex items-center justify-center p-6">
                   <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                      Unlock Your Travel Pack
+                      Unlock Your Travel Brief
                     </h3>
                     
                     <div className="space-y-4">
                       {/* One-time Purchase */}
                       <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-gray-900">One-Time Pack</h4>
+                          <h4 className="font-semibold text-gray-900">One-Time Brief</h4>
                           <span className="text-2xl font-bold text-gray-900">$5</span>
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
@@ -268,7 +268,7 @@ export function Preview() {
                           disabled={isLoading}
                           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          {isLoading ? 'Processing...' : 'Get This Pack'}
+                          {isLoading ? 'Processing...' : 'Get This Brief'}
                         </button>
                       </div>
 
@@ -288,7 +288,7 @@ export function Preview() {
                           </div>
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
-                          Unlimited travel packs for all your trips
+                          Unlimited travel briefs for all your trips
                         </p>
                         <button
                           onClick={() => {

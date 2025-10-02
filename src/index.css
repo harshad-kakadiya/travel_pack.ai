@@ -19,10 +19,25 @@
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid #32B1EA;
     outline-offset: 2px;
     border-radius: 6px;
   }
+}
+
+/* Brand color overrides for CTAs */
+@layer utilities {
+  /* Replace Tailwind blue CTA shades with brand cyan #32B1EA */
+  .bg-blue-600 { background-color: #32B1EA !important; }
+  .hover\:bg-blue-700:hover { background-color: #1898d3 !important; }
+  .hover\:bg-blue-600:hover { background-color: #1898d3 !important; }
+  .bg-blue-500 { background-color: #32B1EA !important; }
+  .hover\:bg-blue-500:hover { background-color: #1898d3 !important; }
+  .bg-blue-400 { background-color: #32B1EA !important; }
+  .text-blue-600 { color: #32B1EA !important; }
+  .hover\:text-blue-800:hover { color: #1898d3 !important; }
+  .focus\:ring-blue-500:focus { --tw-ring-color: #32B1EA !important; }
+  .focus\:ring-blue-400:focus { --tw-ring-color: #32B1EA !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {

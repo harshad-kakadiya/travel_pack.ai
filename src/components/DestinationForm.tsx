@@ -9,6 +9,55 @@ interface DestinationFormProps {
 }
 
 export function DestinationForm({ destinations, onUpdate, tripDuration }: DestinationFormProps) {
+  const [suggestionsByIndex, setSuggestionsByIndex] = React.useState<Record<number, { name: string; country?: string }[]>>({});
+  const [loadingIndex, setLoadingIndex] = React.useState<number | null>(null);
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+  const debounceRef = React.useRef<number | undefined>(undefined);
+
+  const fetchCitySuggestions = async (index: number, query: string) => {
+    if (!query || query.trim().length < 2) {
+      setSuggestionsByIndex((prev) => ({ ...prev, [index]: [] }));
+      return;
+    }
+
+    try {
+      setLoadingIndex(index);
+      const resp = await fetch(`https://api.teleport.org/api/cities/?search=${encodeURIComponent(query)}&limit=8`);
+      const data = await resp.json();
+      const items: { name: string; country?: string }[] = (data?._embedded?.["city:search-results"] || []).map((it: any) => {
+        const full = it.matching_full_name as string;
+        // Example: "Paris, Ile-de-France, France"
+        const parts = full.split(',').map((p) => p.trim());
+        const name = parts[0] || full;
+        const country = parts[parts.length - 1];
+        return { name, country };
+      });
+      setSuggestionsByIndex((prev) => ({ ...prev, [index]: items }));
+    } catch (e) {
+      setSuggestionsByIndex((prev) => ({ ...prev, [index]: [] }));
+    } finally {
+      setLoadingIndex((curr) => (curr === index ? null : curr));
+    }
+  };
+
+  const handleCityInputChange = (index: number, value: string) => {
+    updateDestination(index, 'cityName', value);
+    setOpenIndex(index);
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = window.setTimeout(() => {
+      fetchCitySuggestions(index, value);
+    }, 250);
+  };
+
+  const selectSuggestion = (index: number, suggestion: { name: string; country?: string }) => {
+    updateDestination(index, 'cityName', suggestion.name);
+    if (suggestion.country && !destinations[index]?.country) {
+      updateDestination(index, 'country', suggestion.country);
+    }
+    setOpenIndex(null);
+  };
   const addDestination = () => {
     onUpdate([...destinations, { cityName: '', country: '', daysAllocated: 1 }]);
   };
@@ -65,14 +114,38 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
             </div>
 
             <div className="grid md:grid-cols-3 gap-3">
-              <div className="md:col-span-1">
+              <div className="md:col-span-1 relative">
                 <input
                   type="text"
                   placeholder="City name *"
                   value={destination.cityName}
-                  onChange={(e) => updateDestination(index, 'cityName', e.target.value)}
+                  onChange={(e) => handleCityInputChange(index, e.target.value)}
+                  onFocus={() => destination.cityName && setOpenIndex(index)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                {openIndex === index && (
+                  <div className="absolute left-0 right-0 mt-1 z-50 max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow">
+                    {loadingIndex === index && (
+                      <div className="p-3 text-sm text-gray-500">Searching…</div>
+                    )}
+                    {(suggestionsByIndex[index] || []).map((s, i) => (
+                      <button
+                        key={`${s.name}-${i}`}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-blue-50"
+                        onClick={() => selectSuggestion(index, s)}
+                      >
+                        <span className="text-sm font-medium text-gray-900">{s.name}</span>
+                        {s.country && (
+                          <span className="ml-2 text-xs text-gray-500">{s.country}</span>
+                        )}
+                      </button>
+                    ))}
+                    {(!loadingIndex || loadingIndex !== index) && (suggestionsByIndex[index]?.length ?? 0) === 0 && destination.cityName && destination.cityName.length >= 2 && (
+                      <div className="p-3 text-sm text-gray-500">No results</div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="md:col-span-1">
                 <input

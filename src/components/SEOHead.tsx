@@ -12,10 +12,10 @@ export function SEOHead({
   title,
   description = "Generate personalized, AI-powered travel briefs with itineraries, packing lists, safety info, and offline tips. Tailored for every type of traveler.",
   image = "/og-image.png",
-  url = "https://travelpack.ai"
+  url = "https://travelbrief.ai"
 }: SEOHeadProps) {
-  const pageTitle = title ? `${title} | TravelPack.ai` : "TravelPack.ai – AI-Powered Travel Packs in Minutes";
-  const ogTwitterTitle = "TravelPack.ai";
+  const pageTitle = title ? `${title} | TravelBrief.ai` : "TravelBrief.ai – AI-Powered Travel Packs in Minutes";
+  const ogTwitterTitle = "TravelBrief.ai";
   const ogTwitterDescription = "Generate personalized, AI-powered travel briefs with itineraries, packing lists, safety info, and offline tips. Tailored for every type of traveler.";
   
   return (
@@ -29,7 +29,7 @@ export function SEOHead({
       <meta property="og:image" content={image} />
       <meta property="og:url" content={url} />
       <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="Travel Pack" />
+      <meta property="og:site_name" content="Travel Brief" />
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />

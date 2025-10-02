@@ -85,7 +85,7 @@ export default function ItineraryViewer() {
   if (loading) {
     return (
       <main id="main" className="max-w-3xl mx-auto px-6 py-12">
-        <SEOHead title="Loading Itinerary — Travel Pack" description="Loading your travel itinerary..." />
+        <SEOHead title="Loading Itinerary — Travel Brief" description="Loading your travel itinerary..." />
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your itinerary...</p>
@@ -97,10 +97,10 @@ export default function ItineraryViewer() {
   if (error) {
     return (
       <main id="main" className="max-w-3xl mx-auto px-6 py-12">
-        <SEOHead title="Itinerary Error — Travel Pack" description="Error loading itinerary." />
+        <SEOHead title="Itinerary Error — Travel Brief" description="Error loading itinerary." />
         <h1 className="text-2xl font-semibold mb-4">Error Loading Itinerary</h1>
         <p className="text-gray-600 mb-6">{error}</p>
-        <Link to="/plan" className="inline-flex items-center rounded-lg bg-black text-white px-5 py-3">Start a new Travel Pack</Link>
+        <Link to="/plan" className="inline-flex items-center rounded-lg bg-black text-white px-5 py-3">Start a new Travel Brief</Link>
       </main>
     );
   }
@@ -108,10 +108,10 @@ export default function ItineraryViewer() {
   if (!itinerary) {
     return (
       <main id="main" className="max-w-3xl mx-auto px-6 py-12">
-        <SEOHead title="Itinerary not found — Travel Pack" description="This itinerary may have expired or is unavailable." />
+        <SEOHead title="Itinerary not found — Travel Brief" description="This itinerary may have expired or is unavailable." />
         <h1 className="text-2xl font-semibold mb-4">Itinerary not found</h1>
         <p className="text-gray-600 mb-6">This link may have expired or is unavailable. If your trip ended more than 3 days ago, it was automatically removed.</p>
-        <Link to="/plan" className="inline-flex items-center rounded-lg bg-black text-white px-5 py-3">Start a new Travel Pack</Link>
+        <Link to="/plan" className="inline-flex items-center rounded-lg bg-black text-white px-5 py-3">Start a new Travel Brief</Link>
       </main>
     );
   }
@@ -127,7 +127,7 @@ export default function ItineraryViewer() {
 
   return (
     <main id="main" className="max-w-3xl mx-auto px-6 py-10">
-      <SEOHead title={`${itinerary.tripTitle || 'Your Trip'} — Day ${idx+1}/${total}`} description="Day-by-day view of your Travel Pack" />
+      <SEOHead title={`${itinerary.tripTitle || 'Your Trip'} — Day ${idx+1}/${total}`} description="Day-by-day view of your Travel Brief" />
       <Reveal variant="fade" duration={600}>
         <div aria-label="Progress" className="w-full h-2 bg-gray-200 rounded-full mb-6"><div className="h-2 bg-black rounded-full" style={{ width: `${progress}%` }} /></div>
       </Reveal>

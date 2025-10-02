@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
-import { useAdminContext } from '../context/AdminContext';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
 import { UserProfile } from './UserProfile';
 
 export function Header() {
-  const { isAdmin, adminEmail, setAdminEmail, isWhitelisted } = useAdminContext();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const handleSignInClick = () => {
     setAuthModalOpen(true);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -22,7 +24,7 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold">✈️</span>
-            <span className="text-xl font-bold text-gray-900">TravelPack.ai</span>
+            <span className="text-xl font-bold text-gray-900">TravelBrief.ai</span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
@@ -41,39 +43,38 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-
             {user ? (
-              <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-3">
                 <button
                   onClick={() => setProfileOpen(true)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors"
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  title={user.email || 'Profile'}
                 >
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.email?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <span className="hidden md:block text-sm">
-                    {user.user_metadata?.full_name || user.email}
-                  </span>
+                  <User className="w-5 h-5" />
                 </button>
-                <Link
-                  to="/plan"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Start Planning
-                </Link>
+                  Log out
+                </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              <nav className="hidden md:flex items-center space-x-4">
                 <button
                   onClick={handleSignInClick}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Sign In
+                  Sign up
                 </button>
-              </div>
+              </nav>
             )}
+            <Link
+              to="/plan"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Start Planning
+            </Link>
           </div>
         </div>
       </div>

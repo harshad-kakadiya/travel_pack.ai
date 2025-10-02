@@ -10,7 +10,7 @@ import { AffiliateLinks } from '../components/AffiliateLinks';
 function enhanceAIResponse(response: string): string {
   // Convert plain text to properly formatted HTML
   let enhanced = response
-    
+
     // Convert line breaks to proper HTML
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>')
@@ -303,7 +303,7 @@ export function Success() {
 
         // Call our new OpenAI function
         const generateResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/openai`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
         {
           method: 'POST',
           headers: {
@@ -1263,7 +1263,7 @@ export function Success() {
               Try Again
             </Link>
             <a
-              href="mailto:support@travelpack.ai"
+              href="mailto:contact@travelbrief.ai"
               className="block text-blue-600 hover:text-blue-800 text-sm"
             >
               Contact Support
@@ -1442,7 +1442,7 @@ export function Success() {
                 <div className="text-sm text-gray-600">
                   <p>We've also emailed you the links for future access.</p>
                   <p className="mt-2">
-                    Having trouble? <a href="mailto:support@travelpack.ai" className="text-blue-600 hover:text-blue-800">Contact support</a>
+                    Having trouble? <a href="mailto:contact@travelbrief.ai" className="text-blue-600 hover:text-blue-800">Contact support</a>
                   </p>
                 </div>
               </div>

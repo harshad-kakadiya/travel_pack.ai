@@ -442,8 +442,8 @@ export function Examples() {
 
   return (
     <>
-      <SEOHead 
-        title="TravelPack.ai Examples – See Sample Travel Briefs"
+      <SEOHead
+        title="TravelBrief.ai Examples – See Sample Travel Briefs"
         description="Browse example travel packs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
       />
       <div className="min-h-screen bg-gray-50 py-8">
@@ -484,10 +484,21 @@ export function Examples() {
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {examplesByPersona[persona]?.map((pack, i) => (
-                  <Reveal key={pack.id} variant="fade-up" delay={i * 60}>
-                    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer ${
-                    (!isPersonaExpanded(persona) && i >= 2) ? 'hidden sm:block' : 'block'
-                  }`}>
+                  <Reveal key={pack.id} variant="fade-up" delay={i * 60} className="h-full">
+                    <div
+                      className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer h-full flex-col ${
+                        (!isPersonaExpanded(persona) && i >= 2) ? 'hidden sm:flex' : 'flex'
+                      }`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openPreview(pack)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openPreview(pack);
+                        }
+                      }}
+                    >
                       <div className="aspect-video relative overflow-hidden">
                       <img 
                         src={pack.cover} 
@@ -510,7 +521,7 @@ export function Examples() {
                         </span>
                         </div>
                       </div>
-                      <div className="p-4">
+                      <div className="p-4 flex flex-col h-full">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
                         {pack.title}
                       </h3>
@@ -518,8 +529,8 @@ export function Examples() {
                       <p className="text-sm text-gray-500 mb-3">{pack.duration}</p>
                       <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
                       <button
-                        onClick={() => openPreview(pack)}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                        onClick={(e) => { e.stopPropagation(); openPreview(pack); }}
+                        className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                       >
                         Preview Pack
                         <ExternalLink className="h-4 w-4" />

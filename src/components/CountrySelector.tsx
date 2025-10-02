@@ -282,12 +282,15 @@ export function CountrySelector({ selected, onSelect }: CountrySelectorProps) {
   const [isEditing, setIsEditing] = useState(!selected);
 
   const filteredCountries = useMemo(() => {
-    const countries = showAll ? allCountries : commonCountries;
-    if (!search) return countries;
-    
-    return countries.filter(country =>
-      country.label.toLowerCase().includes(search.toLowerCase())
-    );
+    // If user is typing, always search across all countries
+    if (search) {
+      return allCountries.filter((country) =>
+        country.label.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Otherwise, show popular by default, or all when explicitly requested
+    return showAll ? allCountries : commonCountries;
   }, [search, showAll]);
 
   const handleCountrySelect = (country: Country) => {

@@ -27,17 +27,17 @@ function generateUUID() {
 const getTripDurationErrorMessage = (persona?: Persona): string => {
   switch (persona) {
     case 'New Traveler':
-      return '⚠️ Travel Packs for new travelers are limited to 3 weeks to avoid overwhelm. Please adjust your dates.';
+      return '⚠️ Travel Briefs for new travelers are limited to 3 weeks to avoid overwhelm. Please adjust your dates.';
     case 'Experienced Traveler':
-      return '⚠️ Travel Packs are optimized for intensive trips of up to 3 weeks. Please shorten your trip to proceed.';
+      return '⚠️ Travel Briefs are optimized for intensive trips of up to 3 weeks. Please shorten your trip to proceed.';
     case 'Minor/Under 18':
-      return '⚠️ Travel Packs for minors are limited to 3 weeks for safety and practicality. Please adjust your dates.';
+      return '⚠️ Travel Briefs for minors are limited to 3 weeks for safety and practicality. Please adjust your dates.';
     case 'Solo Female Traveler':
-      return '⚠️ To ensure safety and quality, Travel Packs are limited to 3 weeks. Please adjust your dates.';
+      return '⚠️ To ensure safety and quality, Travel Briefs are limited to 3 weeks. Please adjust your dates.';
     case 'Family':
-      return '⚠️ Travel Packs for families work best for trips of up to 3 weeks. Please adjust your dates.';
+      return '⚠️ Travel Briefs for families work best for trips of up to 3 weeks. Please adjust your dates.';
     default:
-      return '⚠️ Travel Packs are limited to 3 weeks maximum. Please adjust your dates.';
+      return '⚠️ Travel Briefs are limited to 3 weeks maximum. Please adjust your dates.';
   }
 };
 
@@ -135,8 +135,8 @@ export function Pricing() {
   return (
     <>
       <SEOHead 
-        title="Pricing – TravelPack.ai"
-        description="Choose between one-time packs or yearly access. Simple, transparent pricing for AI-curated travel planning."
+        title="Pricing – TravelBrief.ai"
+        description="Choose between one-time briefs or yearly access. Simple, transparent pricing for AI-curated travel planning."
       />
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -154,7 +154,7 @@ export function Pricing() {
           <div className="bg-white rounded-lg shadow-sm border-2 border-gray-200 p-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                One-Time Pack
+                One-Time Brief
               </h2>
               <div className="text-4xl font-bold text-gray-900 mb-2">
                 $5
@@ -167,7 +167,7 @@ export function Pricing() {
             <ul className="space-y-3 mb-8">
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                <span>One personalized Travel Pack</span>
+                <span>One personalized Travel Brief</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
@@ -192,7 +192,7 @@ export function Pricing() {
               disabled={isLoading}
               className="w-full bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
-              {isLoading ? 'Loading...' : isValid ? 'Get This Pack' : 'Get Started'}
+              {isLoading ? 'Loading...' : isValid ? 'Get This Brief' : 'Get Started'}
             </button>
           </div>
 
@@ -214,18 +214,18 @@ export function Pricing() {
               </div>
               <p className="text-sm text-gray-600 mb-2">per year</p>
               <p className="text-blue-600 font-medium">
-                Unlimited Travel Packs
+                Unlimited Travel Briefs
               </p>
             </div>
 
             <ul className="space-y-3 mb-8">
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                <span className="font-medium">Unlimited Travel Packs</span>
+                <span className="font-medium">Unlimited Travel Briefs</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                <span>All one-time pack features</span>
+                <span>All one-time brief features</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
@@ -233,7 +233,7 @@ export function Pricing() {
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                <span>Create packs for friends & family</span>
+                <span>Create briefs for friends & family</span>
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-3" />

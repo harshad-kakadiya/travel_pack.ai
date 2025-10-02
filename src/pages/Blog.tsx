@@ -137,7 +137,11 @@ export function Blog() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <SEOHead 
-        title="Travel Blog – Travel Pack"
+        title="Travel Blog – Travel Brief"
+        description="Expert travel advice, tips, and destination guides to help you plan better trips and travel with confidence."
+      />
+      <SEOHead 
+        title="Travel Blog – Travel Brief"
         description="Expert travel advice, tips, and destination guides to help you plan better trips and travel with confidence."
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -196,7 +200,7 @@ export function Blog() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <User className="h-5 w-5 text-gray-400" />
-                    <span className="text-gray-600">Travel Pack</span>
+                    <span className="text-gray-600">Travel Brief</span>
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="text-gray-600">{formatDate(blogPosts[0].published_date)}</span>
                   </div>
@@ -242,7 +246,7 @@ export function Blog() {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-2 text-gray-500">
                         <User className="h-4 w-4" />
-                        <span>Travel Pack</span>
+                        <span>Travel Brief</span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-500">
                         <Calendar className="h-4 w-4" />
@@ -283,7 +287,7 @@ export function Blog() {
           </div>
         </Reveal>
 
-        {/* CTA to Travel Pack */}
+        {/* CTA to Travel Brief */}
         <Reveal className="text-center mt-12" variant="fade-up">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">
             Ready to put these tips into action?
@@ -292,7 +296,7 @@ export function Blog() {
             to="/plan"
             className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors"
           >
-            Create Your Travel Pack
+            Create Your Travel Brief
             <ArrowRight className="h-5 w-5" />
           </Link>
         </Reveal>
