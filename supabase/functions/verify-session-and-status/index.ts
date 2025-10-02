@@ -189,7 +189,6 @@ Deno.serve(async (req: Request) => {
     } else {
       paymentReason = `Unknown checkout mode: ${checkoutSession.mode}`;
     }
-
     // Log the verification attempt
     console.log('Payment verification:', {
       session_id,

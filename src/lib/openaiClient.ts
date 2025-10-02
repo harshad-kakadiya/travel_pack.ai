@@ -130,7 +130,7 @@ export async function callOpenAITravelPlanning(
   }
 
   try {
-    const { data, error } = await supabase.functions.invoke('openai-function', {
+    const { data, error } = await supabase.functions.invoke('openai', {
       body: {
         tripData,
         promptType

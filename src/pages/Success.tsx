@@ -154,7 +154,7 @@ export function Success() {
   const verifyPayment = async () => {
     try {
       // Get pending_session_id from localStorage (saved during checkout)
-      const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';
+      const pendingSessionId = localStorage.getItem('pending_session_id');
 
       if (!pendingSessionId) {
         setError('No pending session found. Please try creating a new travel pack.');
@@ -171,7 +171,7 @@ export function Success() {
         },
         body: JSON.stringify({
           session_id: sessionId,
-          pending_session_id: 'f2668173-0fc5-47ae-9593-12a707f79cc4'
+          pending_session_id: pendingSessionId
         }),
       });
 
@@ -289,7 +289,7 @@ export function Success() {
 
       // Call our new OpenAI function
       const generateResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai`,
         {
           method: 'POST',
           headers: {
