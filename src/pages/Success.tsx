@@ -302,7 +302,7 @@ export function Success() {
 
         // Call our new OpenAI function
         const generateResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/openai`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
         {
           method: 'POST',
           headers: {
