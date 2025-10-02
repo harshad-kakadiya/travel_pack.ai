@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAdminPassword, generateAdminToken, setAdminCookie } from '../../../lib/adminAuth';
+import { verifyAdminPassword, generateAdminToken, setAdminCookie } from '../../../lib/adminAuth.ts';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

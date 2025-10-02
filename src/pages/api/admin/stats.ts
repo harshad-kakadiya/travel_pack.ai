@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
-import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth';
+import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth.ts';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

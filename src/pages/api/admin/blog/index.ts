@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin, BlogPost } from '../../../lib/supabaseAdmin';
-import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth';
+import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth.ts';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const token = getAdminTokenFromRequest(req);
@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Convert data URL to blob
           const response = await fetch(image_url);
           const blob = await response.blob();
-          
+
           // Generate unique filename
           const timestamp = Date.now();
           const fileExtension = blob.type.split('/')[1] || 'jpg';

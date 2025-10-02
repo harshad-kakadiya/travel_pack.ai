@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
-import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth';
+import { getAdminTokenFromRequest, isAdminTokenValid } from '../../../lib/adminAuth.ts';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Get last 30 days revenue
     const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
-    
+
     const { data: last30DaysPayments } = await stripe.paymentIntents.list({
       created: { gte: thirtyDaysAgo },
       limit: 100,
