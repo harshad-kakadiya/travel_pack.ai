@@ -13,6 +13,7 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
   const [loadingIndex, setLoadingIndex] = React.useState<number | null>(null);
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
   const debounceRef = React.useRef<number | undefined>(undefined);
+  const controllerRef = React.useRef<AbortController | null>(null);
 
   const fetchCitySuggestions = async (index: number, query: string) => {
     if (!query || query.trim().length < 2) {
@@ -22,21 +23,35 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
 
     try {
       setLoadingIndex(index);
-      const resp = await fetch(`https://api.teleport.org/api/cities/?search=${encodeURIComponent(query)}&limit=8`);
-      const data = await resp.json();
-      const items: { name: string; country?: string }[] = (data?._embedded?.["city:search-results"] || []).map((it: any) => {
-        const full = it.matching_full_name as string;
-        // Example: "Paris, Ile-de-France, France"
-        const parts = full.split(',').map((p) => p.trim());
-        const name = parts[0] || full;
-        const country = parts[parts.length - 1];
-        return { name, country };
-      });
+      // Cancel any in-flight request before starting a new one
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      controllerRef.current = controller;
+
+      // Use Open-Meteo Geocoding API as the single provider to avoid DNS errors
+      let items: { name: string; country?: string }[] = [];
+      try {
+        const resp = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`,
+          { signal: controller.signal }
+        );
+        const data = await resp.json();
+        items = (data?.results || []).map((it: any) => ({
+          name: it.name,
+          country: it.country,
+        }));
+      } catch (_err) {
+        items = [];
+      }
+
       setSuggestionsByIndex((prev) => ({ ...prev, [index]: items }));
     } catch (e) {
       setSuggestionsByIndex((prev) => ({ ...prev, [index]: [] }));
     } finally {
       setLoadingIndex((curr) => (curr === index ? null : curr));
+      controllerRef.current = null;
     }
   };
 
@@ -48,18 +63,19 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
     }
     debounceRef.current = window.setTimeout(() => {
       fetchCitySuggestions(index, value);
-    }, 250);
+    }, 2000);
   };
 
   const selectSuggestion = (index: number, suggestion: { name: string; country?: string }) => {
     updateDestination(index, 'cityName', suggestion.name);
-    if (suggestion.country && !destinations[index]?.country) {
+    // Always auto-fill/overwrite the country when a city is chosen
+    if (suggestion.country) {
       updateDestination(index, 'country', suggestion.country);
     }
     setOpenIndex(null);
   };
   const addDestination = () => {
-    onUpdate([...destinations, { cityName: '', country: '', daysAllocated: 1 }]);
+    onUpdate([...destinations, { cityName: '', country: '', daysAllocated: 0 }]);
   };
 
   const removeDestination = (index: number) => {
@@ -121,6 +137,10 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
                   value={destination.cityName}
                   onChange={(e) => handleCityInputChange(index, e.target.value)}
                   onFocus={() => destination.cityName && setOpenIndex(index)}
+                  onBlur={() => {
+                    // Delay closing slightly to allow click on suggestion
+                    window.setTimeout(() => setOpenIndex((curr) => (curr === index ? null : curr)), 100);
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 {openIndex === index && (
@@ -146,6 +166,10 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
                     )}
                   </div>
                 )}
+                {/* Spacer to avoid overlapping the date field when dropdown is open */}
+                {openIndex === index && (
+                  <div className="h-56" />
+                )}
               </div>
               <div className="md:col-span-1">
                 <input
@@ -163,12 +187,20 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
                     min="1"
                     max={tripDuration || 365}
                     placeholder="Days"
-                    value={destination.daysAllocated}
-                    onChange={(e) => updateDestination(index, 'daysAllocated', parseInt(e.target.value) || 1)}
+                    value={destination.daysAllocated || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        updateDestination(index, 'daysAllocated', 0);
+                      } else {
+                        const numValue = parseInt(value);
+                        updateDestination(index, 'daysAllocated', numValue > 0 ? numValue : 0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <span className="text-sm text-gray-500 whitespace-nowrap">
-                    day{destination.daysAllocated !== 1 ? 's' : ''}
+                    day{(destination.daysAllocated || 0) !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>

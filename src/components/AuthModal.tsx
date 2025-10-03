@@ -17,6 +17,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, startInSi
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   const { signIn, signUp, resetPassword } = useAuth();
 
@@ -41,19 +43,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, startInSi
           return;
         }
         
-        const { error, success } = await signUp(email, password);
+        const { error, success, needsEmailConfirmation } = await signUp(email, password);
         if (error) {
           setError(error.message);
         } else if (success) {
-          setMessage('Account created successfully! Please sign in below.');
-          setIsSignUp(false); // Switch to sign-in mode
-          setEmail(''); // Clear email for sign-in
+          // Show email confirmation popup instead of switching to sign-in
+          setSignupEmail(email);
+          setShowEmailConfirmation(true);
+          setEmail('');
           setPassword('');
           setConfirmPassword('');
         } else {
-          setMessage('Check your email for a confirmation link!');
-          setIsSignUp(false); // Switch to sign-in mode
-          setEmail(''); // Clear email for sign-in
+          // Fallback case
+          setSignupEmail(email);
+          setShowEmailConfirmation(true);
+          setEmail('');
           setPassword('');
           setConfirmPassword('');
         }
@@ -102,6 +106,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, startInSi
     setShowForgotPassword(false);
     setForgotEmail('');
     setIsSignUp(false);
+    setShowEmailConfirmation(false);
+    setSignupEmail('');
   };
 
   const handleClose = () => {
@@ -110,6 +116,63 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, startInSi
   };
 
   if (!isOpen) return null;
+
+  // Email Confirmation Popup
+  if (showEmailConfirmation) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="p-6 text-center">
+            <div className="mb-4">
+              <div className="rounded-full h-16 w-16 bg-green-100 flex items-center justify-center mx-auto">
+                <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Sign Up Successful!
+            </h2>
+            
+            <p className="text-gray-600 mb-4">
+              We've sent a confirmation email to:
+            </p>
+            
+            <p className="text-blue-600 font-medium mb-6">
+              {signupEmail}
+            </p>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <p className="text-sm text-blue-800">
+                Please check your email and click the confirmation link to activate your account. 
+                You'll be able to sign in once your email is confirmed.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={handleClose}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Got it!
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowEmailConfirmation(false);
+                  setIsSignUp(false); // Switch to sign-in mode
+                }}
+                className="w-full text-blue-600 hover:text-blue-700 text-sm"
+              >
+                Already confirmed? Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

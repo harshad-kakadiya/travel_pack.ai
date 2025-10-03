@@ -44,6 +44,8 @@ interface ExamplePack {
   description: string;
   highlights: string[];
   htmlFile: string;
+  cover?: string;
+  coverAlt?: string;
 }
 
 const examplePacks: ExamplePack[] = [
@@ -416,12 +418,12 @@ export function Examples() {
   // Normalize cards with slug-based image mapping
   const normalizedPacks = examplePacks.map((pack) => {
     const imageUrl = EXAMPLE_IMAGE_MAP[pack.title];
-    
-    // Log missing mappings in admin mode  
+
+    // Log missing mappings in admin mode
     if (!imageUrl && import.meta.env.VITE_IS_ADMIN === 'true') {
       console.warn('[Images] No image mapping for title:', pack.title);
     }
-    
+
     return {
       ...pack,
       cover: imageUrl ?? pack.thumbnail ?? 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80',
@@ -481,8 +483,8 @@ export function Examples() {
                   </p>
                 </div>
               </Reveal>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
                 {examplesByPersona[persona]?.map((pack, i) => (
                   <Reveal key={pack.id} variant="fade-up" delay={i * 60} className="h-full">
                     <div
@@ -499,15 +501,15 @@ export function Examples() {
                         }
                       }}
                     >
-                      <div className="aspect-video relative overflow-hidden">
-                      <img 
-                        src={pack.cover} 
+                      <div className="relative overflow-hidden">
+                      <img
+                        src={pack.cover}
                         alt={pack.coverAlt}
                         referrerPolicy="no-referrer"
                         width={1600}
                         height={900}
                         loading="lazy"
-                        className="w-full h-48 object-cover rounded-xl"
+                        className="w-full h-48 object-cover"
                         onError={(e) => {
                           const t = e.currentTarget as HTMLImageElement;
                           t.onerror = null;
@@ -521,16 +523,16 @@ export function Examples() {
                         </span>
                         </div>
                       </div>
-                      <div className="p-4 flex flex-col h-full">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+                      <div className="p-3 flex flex-col h-[60%]">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
                         {pack.title}
                       </h3>
                       <p className="text-sm text-blue-600 mb-1">{pack.destination}</p>
-                      <p className="text-sm text-gray-500 mb-3">{pack.duration}</p>
-                      <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
+                      <p className="text-sm text-gray-500 mb-2">{pack.duration}</p>
+                      <p className="text-gray-600 mb-2 text-sm line-clamp-3">{pack.description}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); openPreview(pack); }}
-                        className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                        className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                       >
                         Preview Pack
                         <ExternalLink className="h-4 w-4" />
@@ -540,7 +542,7 @@ export function Examples() {
                   </Reveal>
                 ))}
               </div>
-              
+
               {/* Mobile-only Show More/Less Button */}
               {examplesByPersona[persona] && examplesByPersona[persona].length > 2 && (
                 <div className="mt-6 sm:hidden flex justify-center">
@@ -551,8 +553,8 @@ export function Examples() {
                     aria-expanded={isPersonaExpanded(persona)}
                     aria-controls={`examples-${persona.replace(/\s+/g, '-').toLowerCase()}`}
                   >
-                    {isPersonaExpanded(persona) 
-                      ? 'Show less' 
+                    {isPersonaExpanded(persona)
+                      ? 'Show less'
                       : `Show more (${examplesByPersona[persona].length - 2} more)`
                     }
                   </button>
@@ -567,7 +569,7 @@ export function Examples() {
               What Travelers Say
             </Reveal>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(testimonialsByPersona).map(([persona, testimonials]) => 
+              {Object.entries(testimonialsByPersona).map(([persona, testimonials]) =>
                 testimonials.map((testimonial, index) => (
                   <Reveal key={`${persona}-${index}`} variant="fade-up" delay={index * 60}>
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full hover:shadow-lg hover:scale-105 transition-all duration-300">
@@ -600,7 +602,7 @@ export function Examples() {
                 Get a personalized travel brief just like these examples, tailored to your specific trip.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/plan"
@@ -630,7 +632,7 @@ export function Examples() {
                 <h2 className="text-2xl font-bold text-gray-900">{selectedPreview.title}</h2>
                 <p className="text-blue-600">{selectedPreview.destination} • {selectedPreview.duration}</p>
               </div>
-              
+
               {/* Scrollable Content */}
               <div className="p-6">
                 <iframe

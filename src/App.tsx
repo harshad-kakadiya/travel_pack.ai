@@ -28,6 +28,7 @@ import { TripProvider } from './context/TripContext';
 import { AdminProvider } from './context/AdminContext';
 import { AuthProvider } from './context/AuthContext';
 import ResetPassword from './pages/ResetPassword';
+import { EmailConfirmation } from './pages/EmailConfirmation';
 
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
                   <Route path="/refund-policy" element={<RefundPolicy />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/email-confirmation" element={<EmailConfirmation />} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/itinerary/:id/day/:day" element={<ItineraryViewer />} />
 </Routes>

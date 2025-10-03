@@ -6,7 +6,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null; success?: boolean }>;
+  signUp: (email: string, password: string) => Promise<{ 
+    error: AuthError | null; 
+    success?: boolean;
+    user?: User | null;
+    needsEmailConfirmation?: boolean;
+  }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
@@ -35,10 +40,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase?.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
+        const response = await supabase?.auth.getSession();
+        if (response?.error) {
+          console.error('Error getting session:', response.error);
         } else {
+          const session = response?.data?.session ?? null;
           setSession(session);
           setUser(session?.user ?? null);
         }
@@ -78,7 +84,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
       });
-      return { error, success: !!data.user };
+      
+      // Return more detailed information about the signup result
+      return { 
+        error, 
+        success: !!data.user,
+        user: data.user,
+        needsEmailConfirmation: !!data.user && !data.session
+      };
     } catch (error) {
       return { error: error as AuthError };
     }

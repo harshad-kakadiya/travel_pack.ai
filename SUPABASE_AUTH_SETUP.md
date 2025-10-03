@@ -20,6 +20,15 @@ This guide will help you set up Supabase authentication for your TravelBrief.ai 
 1. In **Authentication** > **Settings**, set **Site URL** to your domain
 2. Add **Redirect URLs**:
    - `https://your-domain.com/reset-password`
+   - `https://your-domain.com/email-confirmation`
+
+### Email Confirmation Settings
+1. In **Authentication** > **Settings**, scroll to **Email Auth**
+2. Enable **Enable email confirmations** (recommended)
+3. Set **Email confirmation URL** to: `https://your-domain.com/email-confirmation`
+4. Configure **Email templates** if needed:
+   - Customize the confirmation email template
+   - Add your branding and messaging
 
 ## 2. Environment Variables
 
@@ -66,6 +75,7 @@ CREATE POLICY "Users can insert own profile" ON profiles
 ### Authentication Features
 - ✅ Email/Password sign up
 - ✅ Email/Password sign in
+- ✅ Email confirmation flow
 - ✅ Password reset via email
 - ✅ Protected routes
 - ✅ User profile management
@@ -79,6 +89,7 @@ CREATE POLICY "Users can insert own profile" ON profiles
 - `UserProfile` - User profile modal
 - `ProtectedRoute` - Route protection wrapper
 - `ResetPassword` - Password reset page
+- `EmailConfirmation` - Email confirmation handling page
 
 ### Protected Routes
 - `/plan` - Main planning page (requires authentication)
