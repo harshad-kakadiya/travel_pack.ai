@@ -30,6 +30,7 @@ import { AuthProvider } from './context/AuthContext';
 import ResetPassword from './pages/ResetPassword';
 import { EmailConfirmation } from './pages/EmailConfirmation';
 
+
 function App() {
   return (
     <AuthProvider>
