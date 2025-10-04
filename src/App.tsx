@@ -24,8 +24,6 @@ import { Terms } from './pages/Terms';
 import { RefundPolicy } from './pages/RefundPolicy';
 import { NotFound } from './pages/NotFound';
 import { Admin } from './pages/Admin';
-import PDFDemo from './components/PDFDemo';
-import PDFTest from './pages/PDFTest';
 import { TripProvider } from './context/TripContext';
 import { AdminProvider } from './context/AdminContext';
 import { AuthProvider } from './context/AuthContext';
@@ -63,8 +61,6 @@ function App() {
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/refund-policy" element={<RefundPolicy />} />
                   <Route path="/admin" element={<Admin />} />
-                  <Route path="/pdf-demo" element={<PDFDemo />} />
-                  <Route path="/pdf-test" element={<PDFTest />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/email-confirmation" element={<EmailConfirmation />} />
                   <Route path="*" element={<NotFound />} />
