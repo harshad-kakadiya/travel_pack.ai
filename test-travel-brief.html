@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Brief Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .travel-brief {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Cover Page */
+        .cover-page {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cover-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .theme-title {
+            font-size: 1.5rem;
+            font-style: italic;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cover-tagline {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Section Headers */
+        .section {
+            margin-bottom: 2rem;
+            page-break-inside: avoid;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-left: 20px;
+            border-left: 4px solid #1A1A2E;
+            background: linear-gradient(90deg, rgba(26, 26, 46, 0.05) 0%, transparent 100%);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .section-icon {
+            font-size: 1.5rem;
+            margin-right: 12px;
+            color: #1A1A2E;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1A1A2E;
+            margin: 0;
+        }
+        
+        /* Cards */
+        .card {
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A1A2E;
+            margin: 0;
+        }
+        
+        /* Day Sections */
+        .day {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .day::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .day-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .day-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1A1A2E;
+            margin-right: 15px;
+        }
+        
+        .day-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1A1A2E;
+            margin: 0;
+        }
+        
+        .day-meta {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-left: auto;
+        }
+        
+        /* Activities */
+        .activity {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .activity-time {
+            font-weight: 600;
+            color: #1A1A2E;
+            font-size: 0.9rem;
+        }
+        
+        .activity-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A1A2E;
+            margin: 8px 0;
+        }
+        
+        .activity-description {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .activity-cost {
+            font-weight: 600;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+        
+        .activity-why {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .alternatives {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .alternatives-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .alternatives-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .alternatives-list li {
+            padding: 5px 0;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .alternatives-list li::before {
+            content: "• ";
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        /* Meal Cards */
+        .meal-card {
+            background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
+            border: 1px solid #ffd54f;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .meal-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #ff9800;
+            border-radius: 10px 0 0 10px;
+        }
+        
+        .meal-name {
+            font-weight: 600;
+            color: #1A1A2E;
+            margin-bottom: 5px;
+        }
+        
+        .meal-area {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .meal-price {
+            font-weight: 600;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+        
+        .meal-description {
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .meal-why {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        
+        /* Tips and Highlights */
+        .tip-box {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            border: 1px solid #c3e6cb;
+            border-left: 4px solid #28a745;
+            border-radius: 0 8px 8px 0;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .tip-title {
+            font-weight: 600;
+            color: #1A1A2E;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tip-icon {
+            margin-right: 8px;
+            color: #28a745;
+        }
+        
+        .tip-content {
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        /* Page breaks */
+        .page-break {
+            page-break-before: always;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+            .travel-brief {
+                box-shadow: none;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="travel-brief">
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <h1 class="cover-title">✈️ Travel Brief for Spain</h1>
+            <div class="cover-subtitle">March 15-20, 2025 • New Traveler • Mid-range Budget • Solo</div>
+            <div class="theme-title">Saffron Sunsets & Flamenco Nights</div>
+            <div class="cover-tagline">Generated by TravelBrief.ai — Your Trip, Planned in Minutes</div>
+        </div>
+
+        <!-- Destination Introduction -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-icon">🌍</span>
+                <h2 class="section-title">Destination Introduction</h2>
+            </div>
+            <div class="card">
+                <p>Spain offers the perfect introduction to Europe for first-time travelers. With its rich history, vibrant culture, excellent infrastructure, and warm Mediterranean climate, it's an ideal destination that balances iconic sights with authentic experiences.</p>
+                <p>Barcelona captivates with Gaudí's architectural masterpieces like the Sagrada Familia and Park Güell. The city's walkable neighborhoods, efficient metro system, and English-speaking locals make it incredibly accessible. Plus, you're just steps from beautiful Mediterranean beaches.</p>
+                <p>Madrid showcases Spain's royal heritage through grand palaces and world-class art museums forming the famous Golden Triangle. The city's elegant parks, bustling tapas culture, and genuinely friendly locals create an inviting atmosphere for tourists.</p>
+            </div>
+        </div>
+
+        <!-- Sample Day -->
+        <div class="section day">
+            <div class="day-header">
+                <span class="day-number">🗓 Day 2 — March 16, 2025</span>
+                <h3 class="day-title">Barcelona Gaudí Tour</h3>
+                <span class="day-meta">Day 2 of 5</span>
+            </div>
+            
+            <!-- Morning Activity -->
+            <div class="activity">
+                <div class="activity-time">🏠 Morning: Sagrada Familia</div>
+                <div class="card-header">
+                    <span class="card-icon">⛪</span>
+                    <h4 class="card-title">Sagrada Familia</h4>
+                </div>
+                <div class="activity-description">Why? Gaudí's unfinished masterpiece and Barcelona's most iconic landmark. The intricate facades and stunning interior will leave first-time visitors speechless.</div>
+                <div class="activity-cost">💰 €26-35 (skip-the-line tickets)</div>
+                <div class="activity-why"><em>Why?</em> Essential Barcelona experience with breathtaking architecture and spiritual significance.</div>
+                
+                <div class="alternatives">
+                    <div class="alternatives-title">Alternatives:</div>
+                    <ul class="alternatives-list">
+                        <li>Park Güell - Colorful mosaic park with city views</li>
+                        <li>Casa Batlló - Gaudí's dragon house on Passeig de Gràcia</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Lunch -->
+            <div class="meal-card">
+                <div class="meal-name">⏰ Lunch: Paella at 7 Portes</div>
+                <div class="meal-area">📍 El Born District • Reservation recommended</div>
+                <div class="meal-price">💰 $$</div>
+                <div class="meal-description">Why? Historic restaurant serving authentic Valencian paella since 1836. Perfect introduction to Spain's most famous dish in an elegant setting.</div>
+                <div class="meal-why"><em>Why?</em> Iconic Spanish dining experience in a beautiful historic setting.</div>
+            </div>
+
+            <!-- Afternoon Activity -->
+            <div class="activity">
+                <div class="activity-time">🚶 Afternoon: Gothic Quarter Walking Tour</div>
+                <div class="card-header">
+                    <span class="card-icon">🏛️</span>
+                    <h4 class="card-title">Gothic Quarter Walking Tour</h4>
+                </div>
+                <div class="activity-description">Why? Medieval streets and Roman ruins in the heart of Barcelona. Free walking tours available - perfect for budget-conscious first-time travelers.</div>
+                <div class="activity-cost">💰 Free (tips welcome)</div>
+                <div class="activity-why"><em>Why?</em> Discover hidden history and local stories while exploring Barcelona's oldest neighborhood.</div>
+            </div>
+        </div>
+
+        <!-- New Traveler Tip -->
+        <div class="tip-box">
+            <div class="tip-title">
+                <span class="tip-icon">💡</span>
+                New Traveler Tip:
+            </div>
+            <div class="tip-content">Book tickets online in advance! Skip-the-line tickets are essential. Audio guide highly recommended for first-time visitors.</div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-icon">📋</span>
+                <h2 class="section-title">Table of Contents</h2>
+            </div>
+            <div class="card">
+                <p>• Weather & Seasonal Insights</p>
+                <p>• Transport & Logistics</p>
+                <p>• Daily Itinerary</p>
+                <p>• Activity Recommendations</p>
+                <p>• Food & Dining</p>
+                <p>• Safety & Emergency Info</p>
+                <p>• Visa & Documentation</p>
+                <p>• Budget Overview</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
