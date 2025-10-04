@@ -34,7 +34,6 @@ import ResetPassword from './pages/ResetPassword';
 import { EmailConfirmation } from './pages/EmailConfirmation';
 import { ScrollToTop } from './components/ScrollToTop';
 
-
 function App() {
   return (
     <AuthProvider>
