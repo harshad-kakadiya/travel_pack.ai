@@ -18,7 +18,7 @@
 
 ## Confirmation of CTA Text:
 
-✅ The primary call-to-action button at the bottom of the static `/examples` page now reads: "Start your Travel Pack" and links to `/plan`
+✅ The primary call-to-action button at the bottom of the static `/examples` page now reads: "Start your Travel Brief" and links to `/plan`
 ✅ The call-to-action button inside the preview modal on the static `/examples` page also links to `/plan`
 
 ## Bullet Checklist Comparing Static Page vs. Step-2:
@@ -70,7 +70,7 @@
 ### Static Page Tests:
 - [ ] Visit `/examples` - should match Step-2 visually (pixel-parity)
 - [ ] Click navbar "Examples" - should open `/examples`
-- [ ] Click "Start your Travel Pack" - should go to `/plan`
+- [ ] Click "Start your Travel Brief" - should go to `/plan`
 - [ ] Preview modal functionality - should work without errors
 - [ ] All images load correctly or show placeholders
 - [ ] All testimonials display without expansion logic

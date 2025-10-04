@@ -181,7 +181,7 @@ export function Home() {
               What Travelers Say
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of travelers who trust Travel Pack for their adventures
+              Join thousands of travelers who trust Travel Brief for their adventures
             </p>
           </Reveal>
 
@@ -359,7 +359,7 @@ export function Home() {
                   10,000+
                 </div>
                 <p className="text-gray-600 text-lg">
-                  Travel packs created
+                  Travel briefs created
                 </p>
               </div>
 
@@ -426,7 +426,7 @@ export function Home() {
                   Generated in Seconds
                 </h4>
                 <p className="text-gray-600">
-                  Upload your messy trip details and get a professional travel pack instantly.
+                  Upload your messy trip details and get a professional travel brief instantly.
                 </p>
               </div>
             </Reveal>

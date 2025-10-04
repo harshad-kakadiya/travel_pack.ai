@@ -69,7 +69,7 @@ export function Blog() {
   const fetchBlogPosts = async () => {
     try {
       setLoading(true);
-      
+
       if (!supabase) {
         console.warn('Supabase client not initialized, using fallback posts');
         setBlogPosts(fallbackPosts);
@@ -112,23 +112,21 @@ export function Blog() {
   const getExcerpt = (content: string, maxLength: number = 150) => {
     // Remove HTML tags and get plain text
     const plainText = content.replace(/<[^>]*>/g, '');
-    return plainText.length > maxLength 
+    return plainText.length > maxLength
       ? plainText.substring(0, maxLength) + '...'
       : plainText;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <SEOHead 
-          title="Travel Blog – Travel Pack"
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <SEOHead
+          title="Travel Blog – Travel Brief"
           description="Expert travel advice, tips, and destination guides to help you plan better trips and travel with confidence."
         />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading blog posts...</p>
-          </div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading blog posts...</p>
         </div>
       </div>
     );
@@ -136,11 +134,11 @@ export function Blog() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <SEOHead 
+      <SEOHead
         title="Travel Blog – Travel Brief"
         description="Expert travel advice, tips, and destination guides to help you plan better trips and travel with confidence."
       />
-      <SEOHead 
+      <SEOHead
         title="Travel Blog – Travel Brief"
         description="Expert travel advice, tips, and destination guides to help you plan better trips and travel with confidence."
       />
@@ -150,7 +148,7 @@ export function Blog() {
             Travel Insights & Tips
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Expert advice, travel tips, and destination guides to help you 
+            Expert advice, travel tips, and destination guides to help you
             plan better trips and travel with confidence.
           </p>
         </Reveal>
@@ -269,19 +267,19 @@ export function Blog() {
         {/* Newsletter Signup */}
         <Reveal className="bg-blue-600 rounded-2xl p-8 md:p-12 text-white text-center mt-12" variant="zoom">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            Get Travel Tips in Your Inbox
+            Get Travel Tips in Your<br />Inbox
           </h2>
           <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter for the latest travel insights, 
+            Subscribe to our newsletter for the latest travel insights,
             destination guides, and exclusive tips from travel experts.
           </p>
-          <div className="max-w-md mx-auto flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500"
+              className="flex-1 px-4 py-3 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-900 placeholder-gray-500"
             />
-            <button className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors">
+            <button className="bg-white hover:bg-gray-50 text-blue-500 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md whitespace-nowrap">
               Subscribe
             </button>
           </div>

@@ -36,7 +36,7 @@ Updated the Features page CTA background image to use the newly uploaded beach s
 - [ ] Rounded corners (`rounded-3xl`) are maintained
 
 ### Content Preservation:
-- [ ] Heading: "Ready to Create Your Perfect Travel Pack?" - unchanged
+- [ ] Heading: "Ready to Create Your Perfect Travel Brief?" - unchanged
 - [ ] Subtext: Trust message - unchanged  
 - [ ] Button: "Start Planning Your Trip" - unchanged
 - [ ] All typography and spacing preserved

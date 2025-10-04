@@ -43,7 +43,7 @@ Added a visually identical CTA card to the Features page, positioned above the f
 - [ ] Center-aligned content
 
 ### Typography:
-- [ ] Heading: "Ready to Create Your Perfect Travel Pack?" - large, bold, white
+- [ ] Heading: "Ready to Create Your Perfect Travel Brief?" - large, bold, white
 - [ ] Subtext: Trust message - regular weight, white at ~90% opacity
 - [ ] Text is centered and properly sized across breakpoints
 

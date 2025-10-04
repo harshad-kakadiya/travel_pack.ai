@@ -210,9 +210,9 @@ export function BlogPost() {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('Fetching blog post with slug:', postSlug);
-      
+
       if (!supabase) {
         console.warn('Supabase client not initialized');
         setError('Database not available');
@@ -268,6 +268,33 @@ export function BlogPost() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatContentHtml = (raw: string) => {
+    if (!raw) return '';
+
+    // Always log for debugging
+    console.log('Original content:', raw);
+
+    const hasHtmlTags = /<[^>]+>/.test(raw);
+    console.log('Has HTML tags:', hasHtmlTags);
+
+    if (hasHtmlTags) {
+      console.log('Returning HTML as-is');
+      return raw;
+    }
+
+    // Convert plain text to HTML
+    const paragraphs = raw
+      .trim()
+      .split(/\n\s*\n+/)
+      .filter(p => p.trim().length > 0)
+      .map(p => p.replace(/\n/g, '<br />'));
+
+    const formatted = paragraphs.map(p => `<p>${p}</p>`).join('');
+    console.log('Formatted content:', formatted);
+
+    return formatted;
   };
 
   const formatDate = (dateString: string | null) => {
@@ -327,8 +354,8 @@ export function BlogPost() {
 
   return (
     <>
-      <SEOHead 
-        title={`${post.title} – Travel Pack Blog`}
+      <SEOHead
+        title={`${post.title} – Travel Brief Blog`}
         description={post.content.replace(/<[^>]*>/g, '').substring(0, 160)}
         image={post.image_url}
       />
@@ -368,11 +395,11 @@ export function BlogPost() {
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                   {post.title}
                 </h1>
-                
+
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
-                    <span>Travel Pack</span>
+                    <span>Travel Brief</span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -386,20 +413,16 @@ export function BlogPost() {
               </header>
 
               {/* Article Body */}
-              <div 
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-                style={{
-                  lineHeight: '1.7',
-                  fontSize: '18px'
-                }}
+              <div
+                className="blog-content"
+                dangerouslySetInnerHTML={{ __html: formatContentHtml(post.content) }}
               />
 
               {/* Article Footer */}
               <footer className="mt-12 pt-8 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    <p>Written by <strong className="text-gray-900">Travel Pack Team</strong></p>
+                    <p>Written by <strong className="text-gray-900">Travel Brief Team</strong></p>
                     <p>Published on {formatDate(post.published_date)}</p>
                   </div>
                   <Link
@@ -410,6 +433,27 @@ export function BlogPost() {
                   </Link>
                 </div>
               </footer>
+            </div>
+          </Reveal>
+
+          {/* Newsletter Signup */}
+          <Reveal className="bg-blue-600 rounded-2xl p-8 md:p-12 text-white text-center mt-12" variant="zoom">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              Get Travel Tips in Your<br />Inbox
+            </h2>
+            <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+              Subscribe to our newsletter for the latest travel insights,
+              destination guides, and exclusive tips from travel experts.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-4 py-3 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-900 placeholder-gray-500"
+              />
+              <button className="bg-white hover:bg-gray-50 text-blue-500 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md whitespace-nowrap">
+                Subscribe
+              </button>
             </div>
           </Reveal>
 
@@ -428,6 +472,260 @@ export function BlogPost() {
           </Reveal>
         </div>
       </div>
+
+      {/* Blog Content Styles */}
+      <style>{`
+        .blog-content {
+          font-size: 18px;
+          line-height: 1.7;
+          color: #374151;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .blog-content h1 {
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin: 2rem 0 1.5rem 0;
+          color: #111827;
+          line-height: 1.2;
+        }
+
+        .blog-content h2 {
+          font-size: 2rem;
+          font-weight: 600;
+          margin: 2rem 0 1.25rem 0;
+          color: #111827;
+          line-height: 1.3;
+        }
+
+        .blog-content h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 1.5rem 0 1rem 0;
+          color: #111827;
+          line-height: 1.4;
+        }
+
+        .blog-content h4 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 1.25rem 0 0.75rem 0;
+          color: #111827;
+        }
+
+        .blog-content h5 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin: 1rem 0 0.5rem 0;
+          color: #111827;
+        }
+
+        .blog-content h6 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 1rem 0 0.5rem 0;
+          color: #111827;
+        }
+
+        .blog-content p {
+          margin-bottom: 1.5rem;
+          text-align: justify;
+        }
+
+        .blog-content ul, .blog-content ol {
+          margin: 1.5rem 0;
+          padding-left: 2rem;
+        }
+
+        .blog-content li {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+
+        .blog-content ul li {
+          list-style-type: disc;
+        }
+
+        .blog-content ol li {
+          list-style-type: decimal;
+        }
+
+        .blog-content li p {
+          margin-bottom: 0.5rem;
+        }
+
+        .blog-content li ul, .blog-content li ol {
+          margin: 0.5rem 0;
+        }
+
+        .blog-content blockquote {
+          border-left: 4px solid #3b82f6;
+          background: #f8fafc;
+          padding: 1.5rem;
+          margin: 2rem 0;
+          font-style: italic;
+          color: #475569;
+          font-size: 1.125rem;
+          line-height: 1.6;
+          border-radius: 0 8px 8px 0;
+        }
+
+        .blog-content blockquote p {
+          margin-bottom: 0;
+        }
+
+        .blog-content blockquote p:last-child {
+          margin-bottom: 0;
+        }
+
+        .blog-content pre {
+          background: #1e293b;
+          color: #e2e8f0;
+          padding: 1.5rem;
+          border-radius: 8px;
+          margin: 2rem 0;
+          overflow-x: auto;
+          font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .blog-content code {
+          background: #f1f5f9;
+          color: #e11d48;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+          font-size: 0.875em;
+          font-weight: 500;
+        }
+
+        .blog-content pre code {
+          background: none;
+          color: inherit;
+          padding: 0;
+          border-radius: 0;
+        }
+
+        .blog-content a {
+          color: #3b82f6;
+          text-decoration: underline;
+          text-decoration-thickness: 2px;
+          text-underline-offset: 2px;
+          transition: color 0.2s ease;
+        }
+
+        .blog-content a:hover {
+          color: #1d4ed8;
+          text-decoration-color: #1d4ed8;
+        }
+
+        .blog-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 12px;
+          margin: 2rem 0;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .blog-content hr {
+          border: none;
+          height: 2px;
+          background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+          margin: 3rem 0;
+        }
+
+        .blog-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 2rem 0;
+          font-size: 16px;
+        }
+
+        .blog-content th, .blog-content td {
+          border: 1px solid #e5e7eb;
+          padding: 0.75rem 1rem;
+          text-align: left;
+        }
+
+        .blog-content th {
+          background: #f9fafb;
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .blog-content td {
+          background: white;
+        }
+
+        .blog-content strong, .blog-content b {
+          font-weight: 600;
+          color: #111827;
+        }
+
+        .blog-content em, .blog-content i {
+          font-style: italic;
+          color: #4b5563;
+        }
+
+        .blog-content u {
+          text-decoration: underline;
+          text-decoration-thickness: 2px;
+          text-underline-offset: 2px;
+        }
+
+        .blog-content s, .blog-content strike {
+          text-decoration: line-through;
+          opacity: 0.7;
+
+
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+          .blog-content {
+            font-size: 16px;
+          }
+
+          .blog-content h1 {
+            font-size: 2rem;
+            margin: 1.5rem 0 1rem 0;
+          }
+
+          .blog-content h2 {
+            font-size: 1.75rem;
+            margin: 1.5rem 0 1rem 0;
+          }
+
+          .blog-content h3 {
+            font-size: 1.375rem;
+            margin: 1.25rem 0 0.75rem 0;
+          }
+
+          .blog-content ul, .blog-content ol {
+            padding-left: 1.5rem;
+          }
+
+          .blog-content blockquote {
+            padding: 1rem;
+            font-size: 16px;
+          }
+
+          .blog-content pre {
+            padding: 1rem;
+            font-size: 13px;
+            overflow-x: auto;
+          }
+
+          .blog-content table {
+            font-size: 14px;
+          }
+
+          .blog-content th, .blog-content td {
+            padding: 0.5rem 0.75rem;
+          }
+        }
+      `}</style>
     </>
   );
 }

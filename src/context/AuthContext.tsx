@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { checkSubscriptionByEmail } from '../lib/stripe';
+import { setCachedSubscription, clearCachedSubscription, clearAllCachedSubscriptions } from '../utils/subscription';
 
 interface AuthContextType {
   user: User | null;
@@ -65,6 +67,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
+
+          // On sign-in, cache subscription once
+          if (event === 'SIGNED_IN' && session?.user?.email) {
+            try {
+              const res = await checkSubscriptionByEmail(session.user.email);
+              setCachedSubscription(session.user.email, !!res?.is_subscribed);
+            } catch {}
+          }
+
+          // On sign-out, clear cache for previous user
+          if (event === 'SIGNED_OUT' && session?.user?.email) {
+            clearCachedSubscription(session.user.email);
+          }
         }
       );
 
@@ -120,7 +135,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
+      const previousEmail = user?.email ?? session?.user?.email ?? null;
       const { error } = await supabase.auth.signOut();
+      // Remove subscription cache for this user and any stray entries
+      try {
+        if (previousEmail) {
+          clearCachedSubscription(previousEmail);
+        }
+        clearAllCachedSubscriptions();
+      } catch {}
       return { error };
     } catch (error) {
       return { error: error as AuthError };

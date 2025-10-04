@@ -6,6 +6,8 @@ import { Persona } from '../context/TripContext';
 import { createCheckoutSession } from '../lib/stripe';
 import { trackPricingCTA, trackCheckoutRedirect } from '../components/Analytics';
 import { SEOHead } from '../components/SEOHead';
+import { AuthModal } from '../components/AuthModal';
+import { useAuth } from '../context/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
@@ -14,14 +16,6 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// Helper function to generate UUID
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 // Helper function to get persona-specific trip duration error message
 const getTripDurationErrorMessage = (persona?: Persona): string => {
@@ -44,8 +38,32 @@ const getTripDurationErrorMessage = (persona?: Persona): string => {
 export function Pricing() {
   const navigate = useNavigate();
   const { tripData, isValid } = useTripContext();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string>('');
+  const [authModalOpen, setAuthModalOpen] = React.useState(false);
+  const [pendingYearlyCheckout, setPendingYearlyCheckout] = React.useState(false);
+
+  // Handle auth state change to trigger checkout after successful signup/login
+  React.useEffect(() => {
+    if (user && pendingYearlyCheckout && authModalOpen) {
+      // User just authenticated, close modal and proceed to checkout
+      setAuthModalOpen(false);
+      setPendingYearlyCheckout(false);
+      handleYearlyCheckout();
+    }
+  }, [user, pendingYearlyCheckout, authModalOpen]);
+
+  // Check for pending checkout from email confirmation
+  React.useEffect(() => {
+    const pendingCheckout = sessionStorage.getItem('pendingYearlyCheckout');
+    if (user && pendingCheckout && user.email_confirmed_at) {
+      // User returned from email confirmation, proceed to checkout
+      sessionStorage.removeItem('pendingYearlyCheckout');
+      handleYearlyCheckout();
+    }
+  }, [user]);
+
 
   const createPendingSession = async () => {
     // Calculate trip duration for validation
@@ -53,7 +71,7 @@ export function Pricing() {
       const start = new Date(tripData.startDate);
       const end = new Date(tripData.endDate);
       const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
+
       // Check trip duration limit (21 days maximum)
       if (duration > 21) {
         throw new Error(getTripDurationErrorMessage(tripData.persona));
@@ -68,7 +86,7 @@ export function Pricing() {
         passport_country_label: tripData.passportCountry?.label,
         start_date: tripData.startDate,
         end_date: tripData.endDate,
-        trip_duration_days: Math.ceil((new Date(tripData.endDate!) - new Date(tripData.startDate!)) / (1000 * 60 * 60 * 24)) + 1,
+        trip_duration_days: Math.ceil((new Date(tripData.endDate!).getTime() - new Date(tripData.startDate!).getTime()) / (1000 * 60 * 60 * 24)) + 1,
         destinations: tripData.destinations,
         group_size: tripData.groupSize,
         budget: tripData.budget,
@@ -87,23 +105,43 @@ export function Pricing() {
   };
   const handleOneTimeClick = async () => {
     trackPricingCTA('one_time');
-    
-    if (!isValid) {
-      // Redirect to planner if form not completed
-      navigate('/plan');
-      return;
-    }
 
-    // Proceed with checkout if form is completed
+    // Always navigate to plan page first for $5 plan
+    navigate('/plan');
+  };
+
+  const handleYearlyCheckout = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const { url } = await createCheckoutSession({
-        plan: 'onetime'
-      });
+      // Check if we have valid trip data
+      const hasValidTripData = isValid && tripData.persona && tripData.destinations?.length > 0;
       
-      trackCheckoutRedirect('one_time');
-      window.location.href = url;
+      if (hasValidTripData) {
+        // User has trip data - create pending session and redirect to success after payment
+        const pendingSessionId = await createPendingSession();
+        localStorage.setItem('pending_session_id', pendingSessionId);
+        localStorage.setItem('travel-pack-trip-data', JSON.stringify(tripData));
+
+        const { url } = await createCheckoutSession({
+          plan: 'yearly'
+        });
+
+        trackCheckoutRedirect('yearly');
+        window.location.href = url;
+      } else {
+        // User clicked from pricing page without trip data
+        // Set flag to redirect to /plan after payment
+        localStorage.setItem('yearly_subscription_pending', 'true');
+        
+        const { url } = await createCheckoutSession({
+          plan: 'yearly',
+          redirectToPlan: true
+        });
+
+        trackCheckoutRedirect('yearly');
+        window.location.href = url;
+      }
     } catch (error) {
       console.error('Checkout failed:', error);
       setError(error instanceof Error ? error.message : 'Checkout failed. Please try again.');
@@ -115,51 +153,47 @@ export function Pricing() {
   const handleYearlyClick = async () => {
     trackPricingCTA('yearly');
     
-    setIsLoading(true);
-    setError('');
-    try {
-      const { url } = await createCheckoutSession({
-        plan: 'yearly'
-      });
-      
-      trackCheckoutRedirect('yearly');
-      window.location.href = url;
-    } catch (error) {
-      console.error('Checkout failed:', error);
-      setError(error instanceof Error ? error.message : 'Checkout failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    // Check if user is already authenticated
+    if (user) {
+      // User is already signed in, proceed to checkout
+      handleYearlyCheckout();
+    } else {
+      // User is not authenticated, open sign-up modal
+      setPendingYearlyCheckout(true);
+      sessionStorage.setItem('pendingYearlyCheckout', 'true');
+      setAuthModalOpen(true);
     }
   };
 
+
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title="Pricing – TravelBrief.ai"
         description="Choose between one-time briefs or yearly access. Simple, transparent pricing for AI-curated travel planning."
       />
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 pb-24 sm:pb-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
             Choose the plan that works best for your travel style
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-3xl mx-auto">
           {/* One-Time Plan */}
-          <div className="bg-white rounded-lg shadow-sm border-2 border-gray-200 p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-lg shadow-sm border-2 border-gray-200 p-6 sm:p-8">
+            <div className="text-center mb-5 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
                 One-Time Brief
               </h2>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                 $5
               </div>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Perfect for a single trip
               </p>
             </div>
@@ -190,30 +224,30 @@ export function Pricing() {
             <button
               onClick={handleOneTimeClick}
               disabled={isLoading}
-              className="w-full bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="w-full bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm active:translate-y-px"
             >
               {isLoading ? 'Loading...' : isValid ? 'Get This Brief' : 'Get Started'}
             </button>
           </div>
 
           {/* Yearly Plan */}
-          <div className="bg-white rounded-lg shadow-lg border-2 border-blue-300 p-8 relative">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1">
+          <div className="bg-white rounded-lg shadow-lg border-2 border-blue-300 p-6 sm:p-8 relative">
+            <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1 shadow">
                 <Crown className="h-4 w-4" />
                 Best Value
               </span>
             </div>
 
-            <div className="text-center mb-6 mt-2">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="text-center mb-5 sm:mb-6 mt-3 sm:mt-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
                 Yearly Unlimited
               </h2>
-              <div className="text-4xl font-bold text-gray-900 mb-1">
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1">
                 $39
               </div>
-              <p className="text-sm text-gray-600 mb-2">per year</p>
-              <p className="text-blue-600 font-medium">
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">per year</p>
+              <p className="text-blue-600 font-medium text-sm sm:text-base">
                 Unlimited Travel Briefs
               </p>
             </div>
@@ -244,16 +278,16 @@ export function Pricing() {
             <button
               onClick={handleYearlyClick}
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm active:translate-y-px"
             >
-              {isLoading ? 'Loading...' : 'Go Unlimited'}
+              {isLoading ? 'Loading...' : user ? 'Go Unlimited' : 'Sign Up & Go Unlimited'}
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <div className="text-center mt-12">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="text-center mt-10 sm:mt-12">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
             Have questions about our pricing?
           </h3>
           <Link
@@ -265,6 +299,28 @@ export function Pricing() {
         </div>
       </div>
 
+      {/* Sticky Mobile Checkout Bar */}
+      <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white/90 backdrop-blur border-t border-gray-200 p-4">
+        <div className="max-w-4xl mx-auto px-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleYearlyClick}
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-3 rounded-lg font-semibold transition-colors shadow-sm active:translate-y-px"
+            >
+              {isLoading ? 'Loading…' : user ? 'Go Unlimited ($39/yr)' : 'Sign Up for $39/yr'}
+            </button>
+            <button
+              onClick={handleOneTimeClick}
+              disabled={isLoading}
+              className="whitespace-nowrap bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-800 px-4 py-3 rounded-lg font-semibold transition-colors"
+            >
+              {isValid ? 'One-Time $5' : 'Start'}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {error && (
         <div className="max-w-3xl mx-auto mb-6">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
@@ -272,6 +328,12 @@ export function Pricing() {
           </div>
         </div>
       )}
+
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        startInSignUp={true}
+      />
     </div>
     </>
   );

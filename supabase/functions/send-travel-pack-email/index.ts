@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Travel Pack is Ready</title>
+    <title>Your Travel Brief is Ready</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -91,10 +91,10 @@ Deno.serve(async (req: Request) => {
         <div class="content">
             <p>Hi${traveler_name ? ` ${traveler_name}` : ''}! 👋</p>
 
-            <p>Great news! Your personalized Travel Pack is now ready. We've created a comprehensive travel brief tailored specifically to your trip${destinations ? ` to ${destinations}` : ''}.</p>
+            <p>Great news! Your personalized Travel Brief is now ready. We've created a comprehensive travel brief tailored specifically to your trip${destinations ? ` to ${destinations}` : ''}.</p>
             
             <div class="highlight">
-                <strong>📋 What's included in your Travel Pack:</strong>
+                <strong>📋 What's included in your Travel Brief:</strong>
                 <ul>
                     <li>Complete day-by-day itinerary</li>
                     <li>Safety tips and local etiquette</li>
@@ -122,12 +122,12 @@ Deno.serve(async (req: Request) => {
             <p>Have an amazing trip! If you need any help or have questions, just reply to this email.</p>
 
             <p>Safe travels! ✈️<br>
-            The Travel Pack Team</p>
+            The Travel Brief Team</p>
         </div>
         
         <div class="footer">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                This email was sent because you purchased a Travel Pack. 
+                This email was sent because you purchased a Travel Brief. 
                 <br>Need help? Reply to this email or visit our <a href="${Deno.env.get('SITE_URL')}/support">support page</a>.
             </p>
         </div>
@@ -137,7 +137,7 @@ Deno.serve(async (req: Request) => {
 
     // Send email via Resend
     const resendPayload: ResendEmailRequest = {
-      from: 'Travel Pack <no-reply@yourdomain.com>',
+      from: 'Travel Brief <no-reply@yourdomain.com>',
       to: email,
       subject: emailSubject,
       html: emailHtml

@@ -46,7 +46,7 @@ className={`base-classes ${
 
 ### Navigation:
 - [ ] Navbar "Examples" link goes to `/examples` (static page)
-- [ ] Static page CTA "Start your Travel Pack" goes to `/plan`
+- [ ] Static page CTA "Start your Travel Brief" goes to `/plan`
 - [ ] Checkout flow continues to use `/examples-checkout-step`
 
 ## Safety Verification

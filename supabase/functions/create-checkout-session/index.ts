@@ -2,19 +2,22 @@
 import { serve } from "https://deno.land/std@0.223.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@12?target=deno";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-email, *',
+  'Access-Control-Max-Age': '86400',
+};
+
 function json(body: any, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
     ...init,
-    headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
+    headers: { 
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      ...init.headers,
+    },
   });
-}
-
-function cors(methods: string) {
-  return {
-    "access-control-allow-origin": "*",
-    "access-control-allow-methods": methods,
-    "access-control-allow-headers": "*",
-  };
 }
 
 // Fixed price IDs for TravelBrief.ai (test or live depend on your STRIPE_SECRET_KEY env)
@@ -28,7 +31,7 @@ function resolvePrice(plan: string | undefined) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: cors("POST,OPTIONS") });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, { status: 405 });
 
   try {
@@ -36,11 +39,14 @@ serve(async (req) => {
     if (!secret) return json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
 
     // Allow env override but default to the provided URLs
-    const successUrl = Deno.env.get("STRIPE_SUCCESS_URL") ?? "https://travelbrief.ai/success?session_id={CHECKOUT_SESSION_ID}";
-    const cancelUrl  = Deno.env.get("STRIPE_CANCEL_URL")  ?? "https://travelbrief.ai/cancel";
-
     const body = await req.json().catch(() => ({}));
-    const { plan, tripId, tripTitle, startDate, endDate, days } = body ?? {};
+    const { plan, tripId, tripTitle, startDate, endDate, days, redirectToPlan } = body ?? {};
+    
+    // If redirectToPlan is true, send user to /plan after payment (for subscription-only checkout)
+    const successUrl = redirectToPlan 
+      ? (Deno.env.get("STRIPE_SUCCESS_URL_PLAN") ?? "https://travelbrief.ai/plan?subscription_complete=true")
+      : (Deno.env.get("STRIPE_SUCCESS_URL") ?? "https://travelbrief.ai/success?session_id={CHECKOUT_SESSION_ID}");
+    const cancelUrl  = Deno.env.get("STRIPE_CANCEL_URL")  ?? "https://travelbrief.ai/cancel";
 
     const { price, mode } = resolvePrice(plan);
 

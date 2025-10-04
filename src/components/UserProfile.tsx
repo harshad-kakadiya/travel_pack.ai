@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { checkSubscriptionByEmail, cancelSubscription } from '../lib/stripe';
+import { ConfirmModal } from './ConfirmModal';
+import { setCachedSubscription } from '../utils/subscription';
 
 interface UserProfileProps {
   isOpen: boolean;
@@ -9,6 +12,75 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
   const { user, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [unsubscribeLoading, setUnsubscribeLoading] = useState(false);
+  const [unsubscribeError, setUnsubscribeError] = useState<string | null>(null);
+  const [unsubscribeSuccess, setUnsubscribeSuccess] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Check subscription status when modal opens
+  useEffect(() => {
+    if (isOpen && user?.email) {
+      checkSubscription();
+    }
+  }, [isOpen, user?.email]);
+
+  const checkSubscription = async () => {
+    if (!user?.email) return;
+    
+    setCheckingSubscription(true);
+    try {
+      const result = await checkSubscriptionByEmail(user.email);
+      setIsSubscribed(result.is_subscribed);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setIsSubscribed(false);
+    } finally {
+      setCheckingSubscription(false);
+    }
+  };
+
+  const handleUnsubscribeClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmUnsubscribe = async () => {
+    if (!user?.email) return;
+
+    setUnsubscribeLoading(true);
+    setUnsubscribeError(null);
+    setUnsubscribeSuccess(false);
+
+    try {
+      const result = await cancelSubscription(user.email);
+      
+      if (result.success) {
+        setUnsubscribeSuccess(true);
+        setIsSubscribed(false);
+        setShowConfirmModal(false);
+        // Update cached subscription status
+        setCachedSubscription(user.email, false);
+        // Show success message for 3 seconds then close
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+      } else {
+        setUnsubscribeError(result.error || 'Failed to cancel subscription');
+        setShowConfirmModal(false);
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      setUnsubscribeError('An unexpected error occurred. Please try again.');
+      setShowConfirmModal(false);
+    } finally {
+      setUnsubscribeLoading(false);
+    }
+  };
+
+  const handleCancelUnsubscribe = () => {
+    setShowConfirmModal(false);
+  };
 
   const handleSignOut = async () => {
     setLoading(true);
@@ -70,6 +142,51 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
               </div>
             </div>
 
+            {/* Subscription Status */}
+            <div className="border-t pt-4">
+              <span className="text-gray-500 text-sm">Subscription status:</span>
+              {checkingSubscription ? (
+                <p className="font-medium text-gray-600 mt-1">Checking...</p>
+              ) : (
+                <p className={`font-medium mt-1 ${isSubscribed ? 'text-green-600' : 'text-gray-600'}`}>
+                  {isSubscribed ? '✓ Active ($39/year)' : 'No active subscription'}
+                </p>
+              )}
+            </div>
+
+            {/* Success Message */}
+            {unsubscribeSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-green-800 text-sm font-medium">
+                  ✓ Subscription cancelled successfully
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {unsubscribeError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-800 text-sm">{unsubscribeError}</p>
+              </div>
+            )}
+
+            {/* Unsubscribe Button */}
+            {isSubscribed && !unsubscribeSuccess && (
+              <div className="border-t pt-4">
+                <button
+                  onClick={handleUnsubscribeClick}
+                  disabled={unsubscribeLoading}
+                  className="w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Unsubscribe
+                </button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Cancel your $39/year subscription
+                </p>
+              </div>
+            )}
+
+            {/* Sign Out Button */}
             <div className="border-t pt-4">
               <button
                 onClick={handleSignOut}
@@ -82,6 +199,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Cancel Subscription?"
+        message="Are you sure you want to cancel your subscription? You will lose access to unlimited travel briefs."
+        confirmText="Yes, Unsubscribe"
+        cancelText="Keep Subscription"
+        onConfirm={handleConfirmUnsubscribe}
+        onCancel={handleCancelUnsubscribe}
+        isLoading={unsubscribeLoading}
+        variant="warning"
+      />
     </div>
   );
 };

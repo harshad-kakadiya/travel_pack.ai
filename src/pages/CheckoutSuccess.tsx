@@ -62,7 +62,7 @@ export function CheckoutSuccess() {
         }));
       }, 3000);
     } catch (err) {
-      setError('Failed to generate travel pack. Please contact support.');
+      setError('Failed to generate travel brief. Please contact support.');
       setGenerating(false);
     }
   };
@@ -110,7 +110,7 @@ export function CheckoutSuccess() {
               Payment Successful! 🎉
             </h1>
             <p className="text-gray-600">
-              Thank you for your purchase. Your travel pack is being prepared.
+              Thank you for your purchase. Your travel brief is being prepared.
             </p>
           </div>
 
@@ -138,7 +138,7 @@ export function CheckoutSuccess() {
           ) : sessionData.pdf_url ? (
             <div className="py-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Your Travel Pack is Ready! 📋
+                Your Travel Brief is Ready! 📋
               </h2>
               <div className="space-y-4">
                 <button
@@ -160,7 +160,7 @@ export function CheckoutSuccess() {
           ) : (
             <div className="py-8">
               <p className="text-gray-600 mb-4">
-                Your travel pack will be ready shortly. Please wait while we generate your personalized content.
+                Your travel brief will be ready shortly. Please wait while we generate your personalized content.
               </p>
               <button
                 onClick={verifySession}

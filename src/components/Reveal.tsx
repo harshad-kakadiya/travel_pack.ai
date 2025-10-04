@@ -21,10 +21,10 @@ export default function Reveal({
   children,
   variant = 'fade-up',
   delay = 0,
-  duration = 700,
-  offset = '0px 0px -10% 0px',
+  duration = 500,
+  offset = '0px 0px -5% 0px',
   once = true,
-  threshold = 0.15,
+  threshold = 0.1,
 }: Props) {
   const Comp: any = as;
   const reduce = usePrefersReducedMotion();

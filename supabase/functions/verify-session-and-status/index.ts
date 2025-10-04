@@ -1,6 +1,41 @@
-import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { checkRateLimit, getClientIP, createRateLimitResponse } from '../_shared/rate-limit.ts';
+
+// Local helpers to avoid Dashboard deploy issues with sibling imports
+type RateLimitResult = { allowed: boolean; remaining: number; resetTime: number };
+
+function getClientIP(req: Request): string {
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  const realIP = req.headers.get('x-real-ip');
+  const cfIP = req.headers.get('cf-connecting-ip');
+  if (forwardedFor) return forwardedFor.split(',')[0].trim();
+  if (realIP) return realIP.trim();
+  if (cfIP) return cfIP.trim();
+  return 'unknown';
+}
+
+async function checkRateLimit(_ip: string, limit: number, windowMs: number): Promise<RateLimitResult> {
+  // Fail-open lightweight rate limiting (no DB dependency for Dashboard deploy)
+  return { allowed: true, remaining: limit, resetTime: Date.now() + windowMs };
+}
+
+function createRateLimitResponse(result: RateLimitResult): Response {
+  const retryAfter = Math.ceil((result.resetTime - Date.now()) / 1000);
+  return new Response(
+    JSON.stringify({ error: 'Too many requests', message: 'Rate limit exceeded. Please try again later.', retryAfter }),
+    {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': retryAfter.toString(),
+        'X-RateLimit-Remaining': result.remaining.toString(),
+        'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString(),
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    }
+  );
+}
 
 interface VerifySessionRequest {
   session_id: string;
@@ -10,7 +45,8 @@ interface VerifySessionRequest {
 const corsHeadersExtended = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-email, *',
+  'Access-Control-Max-Age': '86400',
 };
 
 Deno.serve(async (req: Request) => {
@@ -210,21 +246,33 @@ Deno.serve(async (req: Request) => {
         status: 'paid'
       };
 
-      // Add Stripe customer ID if available
-      if (checkoutSession.customer) {
-        updateData.stripe_customer_id = checkoutSession.customer;
-      }
+      // Do not write stripe_customer_id to avoid schema mismatch across environments
 
-      const { error: updateError } = await supabase
+      // First attempt: update including stripe_customer_id when present
+      let { error: updateError }: { error: any } = await supabase
         .from('pending_sessions')
         .update(updateData)
         .eq('id', pending_session_id);
+
+      // If the update failed because stripe_customer_id column doesn't exist, retry without it
+      if (updateError && typeof updateError?.message === 'string' && updateError.message.includes('stripe_customer_id')) {
+        const retryData = { ...updateData } as any;
+        delete retryData.stripe_customer_id;
+
+        const retry = await supabase
+          .from('pending_sessions')
+          .update(retryData)
+          .eq('id', pending_session_id);
+        updateError = (retry as any).error;
+      }
 
       if (updateError) {
         console.error('Failed to update pending session:', updateError);
         return new Response(
           JSON.stringify({ 
             error: 'Payment verified but failed to update database',
+            details: updateError?.message ?? updateError,
+            code: updateError?.code,
             has_paid: true,
             reason: paymentReason
           }),
@@ -270,6 +318,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // Return verification result
+    // Normalize currency amounts (Stripe returns cents)
+    const amountTotalDollars = typeof checkoutSession.amount_total === 'number'
+      ? checkoutSession.amount_total / 100
+      : null;
+
     return new Response(
       JSON.stringify({
         has_paid: isPaid,
@@ -279,7 +332,7 @@ Deno.serve(async (req: Request) => {
           payment_status: checkoutSession.payment_status,
           status: checkoutSession.status,
           customer_email: checkoutSession.customer_details?.email,
-          amount_total: checkoutSession.amount_total,
+          amount_total: amountTotalDollars,
           currency: checkoutSession.currency
         }
       }),

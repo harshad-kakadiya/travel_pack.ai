@@ -5,6 +5,7 @@ export interface CreateCheckoutSessionRequest {
   startDate?: string;
   endDate?: string;
   days?: any[];
+  redirectToPlan?: boolean;
 }
 
 export interface CreateCheckoutSessionResponse {
@@ -49,4 +50,41 @@ export async function verifySessionAndStatus(sessionId: string) {
   }
 
   return response.json();
+}
+
+export async function checkSubscriptionByEmail(email: string): Promise<{ is_subscribed: boolean }>
+{
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-subscription`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    return { is_subscribed: false };
+  }
+
+  return response.json();
+}
+
+export async function cancelSubscription(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return { success: false, error: data.error || 'Failed to cancel subscription' };
+  }
+
+  return { success: true, message: data.message };
 }

@@ -154,7 +154,7 @@ export class OpenAIClient {
     activity_preferences?: string[];
     ages?: string;
   }) {
-    const systemPrompt = `You are Travel Pack, a world-class travel researcher, editor, and concierge.
+    const systemPrompt = `You are Travel Brief, a world-class travel researcher, editor, and concierge.
 You generate paid, premium-quality travel briefs for travelers.
 Output valid JSON with pre-defined fields containing HTML with inline CSS styling.
 

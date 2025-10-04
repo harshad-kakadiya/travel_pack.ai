@@ -4,6 +4,9 @@ import { CheckCircle, Download, Loader, AlertCircle, ArrowLeft, FileText } from 
 import { trackDownloadComplete } from '../components/Analytics';
 import { generatePDFWithPrint, downloadAsText, enhanceHTMLForPDF } from '../lib/pdfGenerator';
 import { AffiliateLinks } from '../components/AffiliateLinks';
+import { useAuth } from '../context/AuthContext';
+import { checkSubscriptionByEmail } from '../lib/stripe';
+import { callSupabaseFunction } from '../lib/corsProxy';
 
 
 // Function to enhance AI response formatting
@@ -137,6 +140,7 @@ interface TravelPackHistory {
 export function Success() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -144,11 +148,18 @@ export function Success() {
   const [verificationData, setVerificationData] = useState<VerifySessionResponse | null>(null);
   const [generatingBrief, setGeneratingBrief] = useState(false);
   const [briefData, setBriefData] = useState<GenerateBriefResponse | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
 
   useEffect(() => {
     if (!sessionId) {
       setError('No session ID provided in URL');
       setLoading(false);
+      return;
+    }
+    
+    // Handle skip case for subscribed users
+    if (sessionId === 'skip') {
+      handleSkipForSubscribedUser();
       return;
     }
 
@@ -159,11 +170,13 @@ export function Success() {
     setIsVerifying(true);
     try {
       // Get pending_session_id from localStorage (saved during checkout)
-      const pendingSessionId = 'f2668173-0fc5-47ae-9593-12a707f79cc4';
+      const pendingSessionId = localStorage.getItem('pending_session_id') || '';
 
       if (!pendingSessionId) {
-        setError('No pending session found. Please try creating a new travel pack.');
+        setError('No pending session found. Please try creating a new travel brief.');
         setLoading(false);
+        // If we cannot find a pending session, send user to pricing to start over
+        try { window.location.replace('/pricing'); } catch {}
         return;
       }
 
@@ -191,6 +204,7 @@ export function Success() {
       if (verifyData.has_paid) {
         // Payment successful, generate travel brief
         await generateTravelBrief(pendingSessionId);
+        setIsSubscribed(true);
       } else {
         setError(`Payment verification failed: ${verifyData.reason}`);
       }
@@ -204,6 +218,49 @@ export function Success() {
       setIsVerifying(false);
     }
   };
+
+  const handleSkipForSubscribedUser = async () => {
+    setIsVerifying(true);
+    try {
+      // Check if user is subscribed
+      if (!user?.email) {
+        setError('Please sign in to generate your travel brief');
+        setLoading(false);
+        return;
+      }
+
+      // Verify subscription status
+      const res = await checkSubscriptionByEmail(user.email);
+      if (!res?.is_subscribed) {
+        setError('Subscription required to skip payment step');
+        setLoading(false);
+        return;
+      }
+
+      // User is subscribed, proceed with generation
+      setIsSubscribed(true);
+      setVerificationData({ has_paid: true, reason: 'Subscribed user' });
+      
+      // Get pending session ID from localStorage
+      const pendingSessionId = localStorage.getItem('pending_session_id') || '';
+      if (pendingSessionId) {
+        await generateTravelBrief(pendingSessionId);
+      } else {
+        setError('No pending session found. Please try creating a new travel brief.');
+      }
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Skip verification error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to verify subscription');
+      setLoading(false);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // If user is subscribed and came here via skip, directly show generate button
+  // We rely on Pricing to navigate to /plan for generation; Success remains after Stripe.
 
   const generateTravelBrief = async (pendingSessionId: string) => {
     // Prevent multiple simultaneous brief generation calls
@@ -253,16 +310,10 @@ export function Success() {
 
         // Try to get data from pending session in database as backup
         try {
-          const sessionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-pending-session-data`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              pending_session_id: pendingSessionId
-            }),
-          });
+          const sessionResponse = await callSupabaseFunction(
+            'get-pending-session-data',
+            { pending_session_id: pendingSessionId }
+          );
 
           if (sessionResponse.ok) {
             const sessionData = await sessionResponse.json();
@@ -301,21 +352,15 @@ export function Success() {
       // Save the processed trip data to localStorage for debugging
       localStorage.setItem('debug-openai-payload', JSON.stringify(openAITripData, null, 2));
 
-        // Call our new OpenAI function
-        const generateResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-function`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        // Call our new OpenAI function using the CORS proxy
+        const generateResponse = await callSupabaseFunction(
+          'openai-function',
+          {
             tripData: openAITripData,
-            promptType: 'travel_brief'
-          }),
-        }
-      );
+            promptType: 'travel_brief',
+            client_reference_id: sessionId || `user-${Date.now()}`
+          }
+        );
 
       console.log('📥 OpenAI Function Status:', generateResponse.status);
 
@@ -325,42 +370,57 @@ export function Success() {
         throw new Error(errorData.error || 'Failed to generate travel brief');
       }
 
-      const responseData = await generateResponse.json();
+      // Check if response is HTML (new format) or JSON (old format)
+      const contentType = generateResponse.headers.get('content-type');
+      let processedResponse = '';
 
-      console.log('✅ OpenAI travel brief generated!');
-      console.log('🤖 OpenAI Response:', responseData);
+      if (contentType && contentType.includes('text/html')) {
+        // New HTML format - get HTML directly
+        processedResponse = await generateResponse.text();
+        console.log('✅ HTML travel brief generated directly!');
+      } else {
+        // Legacy JSON format - parse and process
+        const responseData = await generateResponse.json();
+        console.log('✅ OpenAI travel brief generated!');
+        console.log('🤖 OpenAI Response:', responseData);
 
-      if (!responseData.success) {
-        throw new Error(responseData.error || 'OpenAI failed to generate travel brief');
-      }
-
-      const openAIResponse = responseData.response;
-      const generatedPrompt = responseData.prompt;
-
-      // Parse the JSON response if it's structured travel brief
-      let travelBriefData = null;
-      let processedResponse = openAIResponse;
-
-      try {
-        // Try to parse as JSON first (structured travel brief)
-        const parsedResponse = JSON.parse(openAIResponse);
-        if (parsedResponse.cover_html && parsedResponse.intro_html) {
-          travelBriefData = parsedResponse;
-          processedResponse = createStructuredTravelBrief(parsedResponse);
+        if (!responseData.success) {
+          throw new Error(responseData.error || 'OpenAI failed to generate travel brief');
         }
-      } catch (error) {
-        // If not JSON, use the enhanced text formatting
-        processedResponse = enhanceAIResponse(openAIResponse);
+
+        const openAIResponse = responseData.response;
+
+        // Parse the JSON response if it's structured travel brief
+        let travelBriefData = null;
+
+        try {
+          // Try to parse as JSON first (structured travel brief)
+          const parsedResponse = JSON.parse(openAIResponse);
+          if (parsedResponse.cover_html && parsedResponse.intro_html) {
+            travelBriefData = parsedResponse;
+            processedResponse = createStructuredTravelBrief(parsedResponse);
+          }
+        } catch (error) {
+          // If not JSON, use the enhanced text formatting
+          processedResponse = enhanceAIResponse(openAIResponse);
+        }
       }
 
-      // Create beautiful, modern HTML formatted response for display and PDF
-      const formattedHTML = `
+      // Create HTML formatted response for display and PDF
+      let formattedHTML = '';
+      
+      if (contentType && contentType.includes('text/html')) {
+        // New format: response is already complete HTML
+        formattedHTML = processedResponse;
+      } else {
+        // Legacy format: wrap the processed response in HTML styling
+        formattedHTML = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Travel Pack AI - ${openAITripData.destinations.map((d: any) => d.name).join(', ')}</title>
+              <title>Travel Brief AI - ${openAITripData.destinations.map((d: any) => d.name).join(', ')}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -1086,7 +1146,7 @@ export function Success() {
             <div class="header">
               <div class="header-content">
                 <div class="header-logo">✈️</div>
-                <h1>Travel Pack AI</h1>
+                <h1>Travel Brief AI</h1>
                 <p class="subtitle">Your Personalized Travel Brief</p>
                 <p class="generated-date">Generated on ${new Date().toLocaleDateString()}</p>
               </div>
@@ -1145,7 +1205,8 @@ export function Success() {
           </div>
         </body>
         </html>
-      `;
+        `;
+      }
 
       // Create response with the data
       const briefData: GenerateBriefResponse = {
@@ -1157,10 +1218,10 @@ export function Success() {
 
       // Save both the raw response and formatted HTML to localStorage for display
       localStorage.setItem('latest_itinerary_json', JSON.stringify({
-        openai_response: openAIResponse,
-        generated_prompt: generatedPrompt,
+        openai_response: processedResponse,
+        generated_prompt: contentType && contentType.includes('text/html') ? 'HTML format' : 'Legacy format',
         trip_data: openAITripData,
-        travel_brief_data: travelBriefData,
+        travel_brief_data: contentType && contentType.includes('text/html') ? 'HTML format' : null,
         generated_at: briefData.generated_at
       }, null, 2));
       localStorage.setItem('latest_itinerary', formattedHTML);
@@ -1227,14 +1288,14 @@ export function Success() {
 
   if (loading && !briefData) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-gray-50 py-10 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               {isVerifying ? 'Verifying your payment...' : 'Processing your request...'}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm sm:text-base">
               This usually takes 30-60 seconds. Please wait while we prepare your personalized travel plan.
             </p>
           </div>
@@ -1251,10 +1312,10 @@ export function Success() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center bg-white p-8 rounded-lg shadow-sm">
+        <div className="max-w-md mx-auto text-center bg-white p-6 sm:p-8 rounded-lg shadow-sm">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
+          <p className="text-gray-600 mb-5 sm:mb-6 text-sm sm:text-base">{error}</p>
           <div className="space-y-3">
             <Link
               to="/plan"
@@ -1275,16 +1336,16 @@ export function Success() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-10 sm:py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+        <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 text-center">
           <div className="mb-6">
             <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               Payment Successful! 🎉
             </h1>
             <p className="text-gray-600">
-              Thank you for your purchase. Your travel pack is ready!
+              Thank you for your purchase. Your travel brief is ready!
             </p>
           </div>
 
@@ -1299,10 +1360,10 @@ export function Success() {
           {generatingBrief && !briefData ? (
             <div className="py-8">
               <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Generating Your AI Travel Brief...
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">
                 Our advanced AI is analyzing your preferences and crafting your personalized travel recommendations. This usually takes 30-60 seconds.
               </p>
               <div className="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto mb-8">
@@ -1316,7 +1377,7 @@ export function Success() {
             </div>
           ) : briefData ? (
             <div className="py-8">
-              <h2 className="text-2xl font-bold text-blue-800 mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-4">
                 Your AI Travel Brief is Ready! 🤖✈️
               </h2>
 
@@ -1340,7 +1401,7 @@ export function Success() {
                   ></div>
 
                   {/* Content */}
-                  <div className="relative z-10 flex items-center justify-center h-full px-8 py-16">
+                  <div className="relative z-10 flex items-center justify-center h-full px-6 sm:px-8 py-14 sm:py-16">
                     <div className="text-center max-w-2xl">
                       {/* Airplane logo */}
                       <div className="mb-6">
@@ -1349,18 +1410,18 @@ export function Success() {
 
                       {/* Main title */}
                       <h1
-                        className="text-4xl md:text-5xl font-black text-white mb-4 drop-shadow-lg"
+                        className="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-lg"
                         style={{
                           textShadow: '0 6px 12px rgba(0, 0, 0, 0.4)',
                           letterSpacing: '-0.02em'
                         }}
                       >
-                        Travel Pack AI
+                        Travel Brief AI
                       </h1>
 
                       {/* Subtitle */}
                       <p
-                        className="text-xl md:text-2xl font-semibold text-white mb-4 drop-shadow-md"
+                        className="text-lg md:text-2xl font-semibold text-white mb-4 drop-shadow-md"
                         style={{
                           textShadow: '0 3px 6px rgba(0, 0, 0, 0.3)',
                           color: '#f8fafc'
@@ -1371,7 +1432,7 @@ export function Success() {
 
                       {/* Generation date */}
                       <p
-                        className="text-base md:text-lg font-medium"
+                        className="text-sm md:text-lg font-medium"
                         style={{
                           color: '#e2e8f0',
                           textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
@@ -1385,20 +1446,32 @@ export function Success() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                   <button
                     onClick={async () => {
                       try {
+                        // Only allow if payment verified for this session OR user is subscribed
+                        const allowViaPayment = !!verificationData?.has_paid;
+                        let allowViaSubscription = isSubscribed;
+                        if (!allowViaSubscription && user?.email) {
+                          try {
+                            const res = await checkSubscriptionByEmail(user.email);
+                            allowViaSubscription = !!res?.is_subscribed;
+                            setIsSubscribed(allowViaSubscription);
+                          } catch {}
+                        }
+
+                        if (!allowViaPayment && !allowViaSubscription) {
+                          try { window.location.replace('/pricing'); } catch {}
+                          return;
+                        }
+
                         trackDownloadComplete('pdf');
-                      const itinerary = localStorage.getItem('latest_itinerary') || '';
+                        const itinerary = localStorage.getItem('latest_itinerary') || '';
                         const enhancedHTML = enhanceHTMLForPDF(itinerary);
-
-                        // Generate PDF using print functionality
                         await generatePDFWithPrint(enhancedHTML, 'travel-pack-ai-brief.pdf');
-
                       } catch (error) {
                         console.error('PDF generation failed:', error);
-                        // Fallback to text download
                         try {
                           const itinerary = localStorage.getItem('latest_itinerary') || '';
                           downloadAsText(itinerary, 'travel-pack-ai-brief.txt');
@@ -1407,7 +1480,7 @@ export function Success() {
                         }
                       }
                     }}
-                   className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"
+                   className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg active:translate-y-px"
                   >
                     <Download className="h-5 w-5" />
                     Download as PDF
@@ -1423,7 +1496,7 @@ export function Success() {
                         console.error('Text download failed:', error);
                       }
                     }}
-                   className="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"
+                   className="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg active:translate-y-px"
                   >
                     <FileText className="h-5 w-5" />
                     Download as Text
@@ -1433,7 +1506,7 @@ export function Success() {
                     href={briefData.html_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                   className="bg-blue-400 hover:bg-blue-500 focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"
+                   className="bg-blue-400 hover:bg-blue-500 focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg active:translate-y-px"
                   >
                     View Online
                   </a>
@@ -1450,12 +1523,12 @@ export function Success() {
           ) : (
             <div className="py-8">
               <p className="text-gray-600 mb-4">
-                Your travel pack will be ready shortly. Please wait while we generate your personalized content.
+                Your travel brief will be ready shortly. Please wait while we generate your personalized content.
               </p>
               <button
                 onClick={verifyPayment}
                 disabled={isVerifying || generatingBrief || !!briefData}
-                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors active:translate-y-px"
               >
                 {isVerifying ? 'Checking...' : (briefData ? 'Already Generated' : 'Check Status')}
               </button>

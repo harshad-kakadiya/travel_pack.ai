@@ -122,8 +122,20 @@ export default function ItineraryViewer() {
   const dayDate = new Date(start); dayDate.setDate(start.getDate() + idx);
   const progress = Math.round(((idx + 1) / total) * 100);
 
-  const next = () => { if (idx + 1 < total) navigate(`/itinerary/${itinerary.tripId}/day/${idx + 2}?${sp.toString()}`); };
-  const prev = () => { if (idx > 0) navigate(`/itinerary/${itinerary.tripId}/day/${idx}?${sp.toString()}`); };
+  const next = () => { 
+    if (idx + 1 < total) {
+      navigate(`/itinerary/${itinerary.tripId}/day/${idx + 2}?${sp.toString()}`);
+      // Ensure scroll to top when navigating to next day
+      window.scrollTo(0, 0);
+    }
+  };
+  const prev = () => { 
+    if (idx > 0) {
+      navigate(`/itinerary/${itinerary.tripId}/day/${idx}?${sp.toString()}`);
+      // Ensure scroll to top when navigating to previous day
+      window.scrollTo(0, 0);
+    }
+  };
 
   return (
     <main id="main" className="max-w-3xl mx-auto px-6 py-10">

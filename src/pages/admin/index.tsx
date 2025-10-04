@@ -5,6 +5,8 @@ import useSWR from 'swr';
 
 interface AdminStats {
   totalPacks: number;
+  totalUsers: number;
+  totalSessions: number;
   personaBreakdown: { [key: string]: number };
   topDestinations: { destination: string; count: number }[];
   recentPacks: any[];
@@ -29,10 +31,30 @@ interface BlogPost {
   updated_at: string;
 }
 
+interface User {
+  email: string;
+  first_seen: string;
+  last_seen: string;
+  active_plan: string;
+  plan_renewal_at?: string;
+  travelBriefs: any[];
+  pendingSessions: any[];
+  totalBriefs: number;
+  totalSessions: number;
+  lastActivity: string;
+}
+
+interface UsersData {
+  users: User[];
+  totalUsers: number;
+  totalTravelBriefs: number;
+  totalPendingSessions: number;
+}
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'blog'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'blog' | 'users'>('dashboard');
   const [showNewPost, setShowNewPost] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [newPost, setNewPost] = useState({ title: '', slug: '', content: '' });
@@ -41,6 +63,7 @@ export default function AdminDashboard() {
   const { data: stats, error: statsError } = useSWR<AdminStats>('/api/admin/stats', fetcher);
   const { data: stripeData, error: stripeError } = useSWR<StripeSummary>('/api/admin/stripe-summary', fetcher);
   const { data: blogData, error: blogError, mutate: mutateBlog } = useSWR<{ posts: BlogPost[] }>('/api/admin/blog', fetcher);
+  const { data: usersData, error: usersError } = useSWR<UsersData>('/api/admin/users', fetcher);
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -149,6 +172,16 @@ export default function AdminDashboard() {
               >
                 Blog Management
               </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'users'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Users & Data
+              </button>
             </nav>
           </div>
         </div>
@@ -158,7 +191,7 @@ export default function AdminDashboard() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* KPI Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                   <div className="p-5">
                     <div className="flex items-center">
@@ -169,7 +202,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="ml-5 w-0 flex-1">
                         <dl>
-                          <dt className="text-sm font-medium text-gray-500 truncate">Total Travel Packs</dt>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Total Travel Briefs</dt>
                           <dd className="text-lg font-medium text-gray-900">{stats?.totalPacks || 0}</dd>
                         </dl>
                       </div>
@@ -234,10 +267,46 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">U</span>
+                        </div>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                          <dd className="text-lg font-medium text-gray-900">{stats?.totalUsers || 0}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">S</span>
+                        </div>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Pending Sessions</dt>
+                          <dd className="text-lg font-medium text-gray-900">{stats?.totalSessions || 0}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Data Tables */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                 {/* Packs by Persona */}
                 <div className="bg-white shadow rounded-lg">
                   <div className="px-4 py-5 sm:p-6">
@@ -252,27 +321,12 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
-
-                {/* Top Destinations */}
-                <div className="bg-white shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Top Destinations</h3>
-                    <div className="space-y-2">
-                      {stats?.topDestinations.slice(0, 5).map((item, index) => (
-                        <div key={index} className="flex justify-between">
-                          <span className="text-sm text-gray-600">{item.destination}</span>
-                          <span className="text-sm font-medium text-gray-900">{item.count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Recent Packs */}
               <div className="bg-white shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Travel Packs</h3>
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Travel Briefs</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -285,7 +339,14 @@ export default function AdminDashboard() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {stats?.recentPacks.map((pack) => (
                           <tr key={pack.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pack.trip_title || 'Untitled'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {pack.destinations && Array.isArray(pack.destinations) && pack.destinations.length > 0
+                                ? pack.destinations.map((dest: any) => 
+                                    typeof dest === 'string' ? dest : dest.cityName || dest.name || dest
+                                  ).join(', ')
+                                : 'Untitled Trip'
+                              }
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pack.persona || 'Unknown'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {new Date(pack.created_at).toLocaleDateString()}
@@ -401,6 +462,158 @@ export default function AdminDashboard() {
                               >
                                 Delete
                               </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Users & Data Management</h2>
+              </div>
+
+              {/* User Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">U</span>
+                        </div>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                          <dd className="text-lg font-medium text-gray-900">{usersData?.totalUsers || 0}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">B</span>
+                        </div>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Total Briefs</dt>
+                          <dd className="text-lg font-medium text-gray-900">{usersData?.totalTravelBriefs || 0}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="p-5">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">S</span>
+                        </div>
+                      </div>
+                      <div className="ml-5 w-0 flex-1">
+                        <dl>
+                          <dt className="text-sm font-medium text-gray-500 truncate">Pending Sessions</dt>
+                          <dd className="text-lg font-medium text-gray-900">{usersData?.totalPendingSessions || 0}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Users Table */}
+              <div className="bg-white shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">All Users</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Briefs</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Seen</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usersData?.users.map((user) => (
+                          <tr key={user.email}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.active_plan === 'yearly' ? 'bg-green-100 text-green-800' :
+                                user.active_plan === 'one_time' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {user.active_plan || 'none'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.totalBriefs}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.totalSessions}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(user.first_seen).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(user.lastActivity).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Travel Briefs Details */}
+              <div className="bg-white shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Travel Briefs Details</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Persona</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destinations</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usersData?.users.flatMap(user => 
+                          user.travelBriefs.map(brief => ({ ...brief, userEmail: user.email }))
+                        ).slice(0, 20).map((brief) => (
+                          <tr key={brief.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{brief.userEmail}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{brief.persona || 'Unknown'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {brief.destinations && Array.isArray(brief.destinations) && brief.destinations.length > 0
+                                ? brief.destinations.map((dest: any) => 
+                                    typeof dest === 'string' ? dest : dest.cityName || dest.name || dest
+                                  ).join(', ')
+                                : 'No destinations'
+                              }
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{brief.plan_type || 'none'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(brief.created_at).toLocaleDateString()}
                             </td>
                           </tr>
                         ))}

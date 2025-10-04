@@ -50,8 +50,8 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 border border-gray-300 rounded-lg">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+      <div className="p-3 sm:p-4 border border-gray-300 rounded-lg">
         <CardElement
           options={{
             style: {
@@ -70,7 +70,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       <button
         type="submit"
         disabled={!stripe || processing || isLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm active:translate-y-px"
       >
         {processing ? 'Processing...' : `Pay ${plan === 'onetime' ? '$5' : '$39/year'}`}
       </button>

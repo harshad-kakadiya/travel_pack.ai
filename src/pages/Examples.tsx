@@ -1,10 +1,10 @@
-import { renderDayTitle } from '../utils/pdf';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, X, ExternalLink } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { svgPlaceholder } from '../utils/placeholder';
 import Reveal from '../components/Reveal';
+import { optimizeImageUrl, responsiveSizes } from '../utils/images';
 
 const EXAMPLE_IMAGE_MAP: Record<string, string> = {
   "Thailand Adventure": "https://unsplash.com/photos/sydwCr54rf0/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzU4NjM5NzM2fA&force=true",
@@ -446,13 +446,13 @@ export function Examples() {
     <>
       <SEOHead
         title="TravelBrief.ai Examples – See Sample Travel Briefs"
-        description="Browse example travel packs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
+        description="Browse example travel briefs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
       />
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="mb-12" variant="fade" duration={800}>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Travel Pack Examples
+              Travel Brief Examples
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl">
               See how TravelBrief.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
@@ -484,11 +484,11 @@ export function Examples() {
                 </div>
               </Reveal>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {examplesByPersona[persona]?.map((pack, i) => (
-                  <Reveal key={pack.id} variant="fade-up" delay={i * 60} className="h-full">
-                    <div
-                      className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer h-full flex-col ${
+                  <Reveal key={pack.id} variant="fade-up" delay={i * 30} className="h-full">
+                      <div
+                      className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-transform duration-200 transform cursor-pointer h-full flex-col content-visibility-auto ${
                         (!isPersonaExpanded(persona) && i >= 2) ? 'hidden sm:flex' : 'flex'
                       }`}
                       role="button"
@@ -503,19 +503,26 @@ export function Examples() {
                     >
                       <div className="relative overflow-hidden">
                       <img
-                        src={pack.cover}
-                        alt={pack.coverAlt}
+                        src={optimizeImageUrl(pack.cover ?? '', 640)}
+                        alt={pack.coverAlt ?? ''}
                         referrerPolicy="no-referrer"
                         width={1600}
                         height={900}
-                        loading="lazy"
-                        className="w-full h-48 object-cover"
+                        loading={i < 4 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        fetchPriority={i < 2 ? 'high' : 'auto'}
+                        sizes={responsiveSizes()}
+                        className="w-full h-56 object-cover transition-opacity duration-300"
+                        onLoad={(e) => {
+                          e.currentTarget.style.opacity = '1';
+                        }}
                         onError={(e) => {
                           const t = e.currentTarget as HTMLImageElement;
                           t.onerror = null;
-                          const label = (pack.title || 'Travel Pack').replace(/&/g, 'and');
+                          const label = (pack.title || 'Travel Brief').replace(/&/g, 'and');
                           t.src = svgPlaceholder(label);
                         }}
+                        style={{ opacity: 0 }}
                       />
                       <div className="absolute top-3 left-3">
                         <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -523,13 +530,13 @@ export function Examples() {
                         </span>
                         </div>
                       </div>
-                      <div className="p-3 flex flex-col h-[60%]">
+                      <div className="p-4">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
                         {pack.title}
                       </h3>
-                      <p className="text-sm text-blue-600 mb-1">{pack.destination}</p>
-                      <p className="text-sm text-gray-500 mb-2">{pack.duration}</p>
-                      <p className="text-gray-600 mb-2 text-sm line-clamp-3">{pack.description}</p>
+                      <p className="text-sm text-blue-600 mb-1 line-clamp-1">{pack.destination}</p>
+                      <p className="text-sm text-gray-500 mb-3">{pack.duration}</p>
+                      <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); openPreview(pack); }}
                         className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
@@ -596,7 +603,7 @@ export function Examples() {
           <Reveal className="bg-white p-8 rounded-2xl shadow-sm" variant="zoom">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                Ready to Create Your Travel Pack?
+                Ready to Create Your Travel Brief?
               </h3>
               <p className="text-gray-600">
                 Get a personalized travel brief just like these examples, tailored to your specific trip.
@@ -608,7 +615,7 @@ export function Examples() {
                 to="/plan"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
               >
-                Start your Travel Pack
+                Start your Travel Brief
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
@@ -654,7 +661,7 @@ export function Examples() {
                     onClick={closePreview}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 mx-auto"
                   >
-                    Start your Travel Pack
+                    Start your Travel Brief
                     <ArrowRight className="h-5 w-5" />
                   </Link>
                 </div>

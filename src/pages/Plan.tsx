@@ -1,6 +1,6 @@
 import { SEOHead } from '../components/SEOHead';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Persona, Destination, useTripContext } from '../context/TripContext';
 import { PersonaSelector } from '../components/PersonaSelector';
 import { CountrySelector } from '../components/CountrySelector';
@@ -8,7 +8,7 @@ import { ActivityPreferences } from '../components/ActivityPreferences';
 import { DateSelector } from '../components/DateSelector';
 import { DestinationForm } from '../components/DestinationForm';
 import { FileUpload } from '../components/FileUpload';
-import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Reveal from '../components/Reveal';
 
@@ -32,23 +32,28 @@ interface LocalTripData {
 const getTripDurationErrorMessage = (persona?: Persona): string => {
   switch (persona) {
     case 'New Traveler':
-      return '⚠️ Travel Packs for new travelers are limited to 3 weeks to avoid overwhelm. Please adjust your dates.';
+      return '⚠️ Travel Briefs for new travelers are limited to 3 weeks to avoid overwhelm. Please adjust your dates.';
     case 'Experienced Traveler':
-      return '⚠️ Travel Packs are optimized for intensive trips of up to 3 weeks. Please shorten your trip to proceed.';
+      return '⚠️ Travel Briefs are optimized for intensive trips of up to 3 weeks. Please shorten your trip to proceed.';
     case 'Minor/Under 18':
-      return '⚠️ Travel Packs for minors are limited to 3 weeks for safety and practicality. Please adjust your dates.';
+      return '⚠️ Travel Briefs for minors are limited to 3 weeks for safety and practicality. Please adjust your dates.';
     case 'Solo Female Traveler':
-      return '⚠️ To ensure safety and quality, Travel Packs are limited to 3 weeks. Please adjust your dates.';
+      return '⚠️ To ensure safety and quality, Travel Briefs are limited to 3 weeks. Please adjust your dates.';
     case 'Family':
-      return '⚠️ Travel Packs for families work best for trips of up to 3 weeks. Please adjust your dates.';
+      return '⚠️ Travel Briefs for families work best for trips of up to 3 weeks. Please adjust your dates.';
     default:
-      return '⚠️ Travel Packs are limited to 3 weeks maximum. Please adjust your dates.';
+      return '⚠️ Travel Briefs are limited to 3 weeks maximum. Please adjust your dates.';
   }
 };
 
 export function Plan() {
   const navigate = useNavigate();
   const { updateTripData } = useTripContext();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Check if user just completed subscription
+  const subscriptionComplete = searchParams.get('subscription_complete') === 'true';
+  const [showSubscriptionBanner, setShowSubscriptionBanner] = useState(subscriptionComplete);
   
   // Local state for Step 1 form (no persistence)
   const [localTripData, setLocalTripData] = useState<LocalTripData>({
@@ -60,6 +65,19 @@ export function Plan() {
   const [pendingSessionId, setPendingSessionId] = useState<string>('');
   const [errors, setErrors] = useState<string[]>([]);
   const [tripDurationError, setTripDurationError] = useState<string>('');
+  
+  // Clear subscription_complete param after showing banner
+  React.useEffect(() => {
+    if (subscriptionComplete) {
+      // Remove the query param from URL without reloading
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('subscription_complete');
+      setSearchParams(newParams, { replace: true });
+      
+      // Clear the localStorage flag
+      localStorage.removeItem('yearly_subscription_pending');
+    }
+  }, [subscriptionComplete]);
 
   // Calculate trip duration from local state
   const tripDuration = React.useMemo(() => {
@@ -175,7 +193,7 @@ export function Plan() {
 
   return (
     <>
-      <SEOHead title="Start — Build your Travel Pack" description="Enter your destinations, dates, and details to generate your Travel Pack." image="/images/og-default.png" />
+      <SEOHead title="Start — Build your Travel Brief" description="Enter your destinations, dates, and details to generate your Travel Brief." image="/images/og-default.png" />
       <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Header */}
@@ -197,6 +215,37 @@ export function Plan() {
             <div className="bg-blue-600 h-2 rounded-full w-1/3"></div>
           </div>
         </div>
+
+        {/* Subscription Complete Banner */}
+        {showSubscriptionBanner && (
+          <Reveal className="mb-6" variant="fade-up">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="flex items-start">
+                <CheckCircle className="h-6 w-6 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-semibold text-green-900 mb-1">
+                    🎉 Subscription Activated!
+                  </h3>
+                  <p className="text-green-800 mb-2">
+                    Your yearly unlimited subscription is now active. You can create unlimited travel briefs throughout the year!
+                  </p>
+                  <p className="text-green-700 text-sm">
+                    Fill out your trip details below to create your first travel brief.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSubscriptionBanner(false)}
+                  className="ml-auto text-green-600 hover:text-green-800"
+                  aria-label="Close banner"
+                >
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </Reveal>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
           <Reveal className="mb-8" variant="fade" duration={800}>

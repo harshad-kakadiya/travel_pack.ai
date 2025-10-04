@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTripContext } from '../context/TripContext';
-import { ArrowRight, ArrowLeft, Star, X, ExternalLink } from 'lucide-react';
-import { SEOHead } from '../components/SEOHead';
-import { svgPlaceholder } from '../utils/placeholder';
+import React, {useState, useEffect} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import {useTripContext} from '../context/TripContext';
+import {ArrowRight, ArrowLeft, Star, X, ExternalLink, Zap} from 'lucide-react';
+import {SEOHead} from '../components/SEOHead';
+import {svgPlaceholder} from '../utils/placeholder';
+import {optimizeImageUrl, responsiveSizes} from '../utils/images';
+import {useAuth} from '../context/AuthContext';
+import {supabase} from '../lib/supabase';
+import {checkSubscriptionByEmail} from '../lib/stripe';
 
 const EXAMPLE_IMAGE_MAP: Record<string, string> = {
   "Thailand Adventure": "https://unsplash.com/photos/sydwCr54rf0/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzU4NjM5NzM2fA&force=true",
@@ -397,10 +401,14 @@ const testimonialsByPersona = {
 
 export function ExamplesCheckoutStep() {
   const navigate = useNavigate();
-  const { tripData, isValid } = useTripContext();
+  const {tripData, isValid} = useTripContext();
+  const {user} = useAuth();
   const [selectedPreview, setSelectedPreview] = useState<ExamplePack | null>(null);
   const [expandedPersonas, setExpandedPersonas] = useState<Set<string>>(new Set());
   const [testimonialsExpanded, setTestimonialsExpanded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
 
   // Guard: Check if required trip data is present
   useEffect(() => {
@@ -410,12 +418,112 @@ export function ExamplesCheckoutStep() {
     }
   }, [tripData, navigate]);
 
+  // Check subscription status
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!user?.email) {
+        setIsSubscribed(false);
+        return;
+      }
+
+      setCheckingSubscription(true);
+      try {
+        const res = await checkSubscriptionByEmail(user.email);
+        setIsSubscribed(!!res?.is_subscribed);
+      } catch (error) {
+        console.error('Failed to check subscription:', error);
+        setIsSubscribed(false);
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+
+    checkSubscription();
+  }, [user?.email]);
+
   const handleContinue = () => {
-    navigate('/preview');
+    // For subscribed users, generate PDF directly
+    if (isSubscribed) {
+      handleDirectGeneration();
+    } else {
+      // Navigate to preview page where plan selection happens
+      navigate('/preview');
+    }
   };
 
-  const handleSkip = () => {
-    navigate('/preview');
+  const handleDirectGeneration = async () => {
+    if (!isSubscribed) {
+      navigate('/preview');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Create pending session for subscribed users
+      const pendingSessionId = await createPendingSession();
+
+      // Store session and trip data
+      localStorage.setItem('pending_session_id', pendingSessionId);
+      localStorage.setItem('travel-pack-trip-data', JSON.stringify(tripData));
+
+      // Navigate to success page with skip flag
+      navigate('/success?session_id=skip');
+    } catch (error) {
+      console.error('Failed to generate travel brief:', error);
+      // Fallback to regular preview flow
+      navigate('/preview');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const createPendingSession = async () => {
+    const {v4: uuidv4} = await import('uuid');
+
+    // Calculate trip duration for validation
+    if (tripData.startDate && tripData.endDate) {
+      const start = new Date(tripData.startDate);
+      const end = new Date(tripData.endDate);
+      const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+      // Check trip duration limit (21 days maximum)
+      if (duration > 21) {
+        throw new Error('Trip duration exceeds 21 days maximum');
+      }
+    }
+
+    const {data, error} = await supabase
+      .from('pending_sessions')
+      .insert({
+        id: uuidv4(),
+        created_at: new Date().toISOString(),
+        persona: tripData.persona,
+        passport_country_code: tripData.passportCountry?.code,
+        passport_country_label: tripData.passportCountry?.label,
+        start_date: tripData.startDate,
+        end_date: tripData.endDate,
+        trip_duration_days: Math.ceil((new Date(tripData.endDate!) - new Date(tripData.startDate!)) / (1000 * 60 * 60 * 24)) + 1,
+        destinations: tripData.destinations,
+        group_size: tripData.groupSize,
+        budget: tripData.budget,
+        activity_preferences: tripData.activityPreferences,
+        upload_keys: tripData.uploadKeys || [],
+        client_ip: null,
+        customer_email: user?.email || null,
+        has_paid: true,
+        plan_type: "Yearly",
+        paid_at: new Date().toISOString(),
+        status: 'Pending',
+        brief_id: uuidv4(),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      throw new Error('Failed to create session');
+    }
+
+    return data.id;
   };
 
   const openPreview = (pack: ExamplePack) => {
@@ -443,12 +551,12 @@ export function ExamplesCheckoutStep() {
   // Normalize cards with slug-based image mapping
   const normalizedPacks = examplePacks.map((pack) => {
     const imageUrl = EXAMPLE_IMAGE_MAP[pack.title];
-    
-    // Log missing mappings in admin mode  
+
+    // Log missing mappings in admin mode
     if (!imageUrl && import.meta.env.VITE_IS_ADMIN === 'true') {
       console.warn('[Images] No image mapping for title:', pack.title);
     }
-    
+
     return {
       ...pack,
       cover: imageUrl ?? pack.thumbnail ?? 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80',
@@ -469,39 +577,56 @@ export function ExamplesCheckoutStep() {
 
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title="TravelBrief.ai Examples – See Sample Travel Briefs"
-        description="Browse example travel packs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
+        description="Browse example travel briefs for different traveler types. See how our AI creates personalized itineraries, safety tips, and packing lists."
       />
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 py-6 sm:py-8 pb-24 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Progress Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <Link 
-                to="/plan" 
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <Link
+                to="/plan"
                 className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2"/>
                 Back to Planning
               </Link>
-              <div className="text-sm text-gray-500">
-                Step 2 of 3
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-500">Step 2 of 3</div>
               </div>
             </div>
-            
+
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div className="bg-blue-600 h-2 rounded-full w-2/3"></div>
             </div>
           </div>
 
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Travel Pack Examples
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl">
-              See how TravelBrief.ai creates personalized, comprehensive travel briefs for different types of travelers. Each example shows real content you'll receive.
-            </p>
+          <div className="mb-8 sm:mb-12">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">
+                  Travel Brief Examples
+                </h1>
+                <p className="mt-1 text-base sm:text-xl text-gray-600 max-w-3xl">
+                  See how TravelBrief.ai creates personalized, comprehensive travel briefs for different types of
+                  travelers. Each example shows real content you'll receive.
+                </p>
+              </div>
+
+              {isSubscribed && (
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleDirectGeneration}
+                    disabled={isProcessing || checkingSubscription}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-600 px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-sm active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
+                  >
+                    {isProcessing ? 'Generating...' : 'Skip'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Example Packs by Persona */}
@@ -528,53 +653,61 @@ export function ExamplesCheckoutStep() {
                   </p>
                 </div>
               </div>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-6">
                 {examplesByPersona[persona]
                   ?.slice(0, expandedPersonas.has(persona) ? undefined : window.innerWidth < 640 ? 2 : undefined)
                   .map((pack) => (
-                  <div key={pack.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 transform cursor-pointer h-full flex flex-col">
-                    <div className="aspect-video relative overflow-hidden">
-                      <img 
-                        src={pack.cover} 
-                        alt={pack.coverAlt}
-                        referrerPolicy="no-referrer"
-                        width={1600}
-                        height={900}
-                        loading="lazy"
-                        className="w-full h-48 object-cover rounded-xl"
-                        onError={(e) => {
-                          const t = e.currentTarget as HTMLImageElement;
-                          t.onerror = null;
-                          const label = (pack.title || 'Travel Pack').replace(/&/g, 'and');
-                          t.src = svgPlaceholder(label);
-                        }}
-                      />
-                      <div className="absolute top-3 left-3">
-                        <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                    <div key={pack.id}
+                         className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-transform duration-200 transform cursor-pointer h-full flex flex-col content-visibility-auto">
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={optimizeImageUrl(pack.cover, 640)}
+                          alt={pack.coverAlt}
+                          referrerPolicy="no-referrer"
+                          width={1600}
+                          height={900}
+                          loading="lazy"
+                          decoding="async"
+                          sizes={responsiveSizes()}
+                          className="w-full h-44 sm:h-56 object-cover transition-opacity duration-300"
+                          onLoad={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                          }}
+                          onError={(e) => {
+                            const t = e.currentTarget as HTMLImageElement;
+                            t.onerror = null;
+                            const label = (pack.title || 'Travel Brief').replace(/&/g, 'and');
+                            t.src = svgPlaceholder(label);
+                          }}
+                          style={{opacity: 0}}
+                        />
+                        <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
+                        <span
+                          className="bg-blue-600 text-white px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium shadow">
                           {pack.persona}
                         </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+                          {pack.title}
+                        </h3>
+                        <p className="text-sm text-blue-600 mb-1 line-clamp-1">{pack.destination}</p>
+                        <p className="text-sm text-gray-500 mb-3">{pack.duration}</p>
+                        <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
+                        <button
+                          onClick={() => openPreview(pack)}
+                          className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-sm active:translate-y-px"
+                        >
+                          Preview Pack
+                          <ExternalLink className="h-4 w-4"/>
+                        </button>
                       </div>
                     </div>
-                    <div className="p-4 flex flex-col h-full">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
-                        {pack.title}
-                      </h3>
-                      <p className="text-sm text-blue-600 mb-1">{pack.destination}</p>
-                      <p className="text-sm text-gray-500 mb-3">{pack.duration}</p>
-                      <p className="text-gray-600 mb-4 text-sm line-clamp-3">{pack.description}</p>
-                      <button
-                        onClick={() => openPreview(pack)}
-                        className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
-                      >
-                        Preview Pack
-                        <ExternalLink className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
-              
+
               {/* Show More/Less Button for Mobile */}
               {examplesByPersona[persona] && examplesByPersona[persona].length > 2 && (
                 <div className="sm:hidden mt-6 text-center">
@@ -590,33 +723,34 @@ export function ExamplesCheckoutStep() {
           ))}
 
           {/* Testimonials Section */}
-          <section className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          <section className="mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">
               What Travelers Say
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(testimonialsByPersona).map(([persona, testimonials]) => 
+              {Object.entries(testimonialsByPersona).map(([persona, testimonials]) =>
                 testimonials
                   .slice(0, testimonialsExpanded ? undefined : window.innerWidth < 640 ? 1 : undefined)
                   .map((testimonial, index) => (
-                  <div key={`${persona}-${index}`} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full hover:shadow-lg hover:scale-105 transition-all duration-300">
-                    <div className="flex items-center mb-3">
-                      <div className="flex text-yellow-400">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-5 w-5 fill-current" />
-                        ))}
+                    <div key={`${persona}-${index}`}
+                         className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full hover:shadow-lg hover:scale-105 transition-all duration-300">
+                      <div className="flex items-center mb-3">
+                        <div className="flex text-yellow-400">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-5 w-5 fill-current"/>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-4 flex-grow">"{testimonial.text}"</p>
+                      <div className="mt-auto">
+                        <p className="font-medium text-gray-900">{testimonial.name}</p>
+                        <p className="text-sm text-gray-500">{persona}</p>
                       </div>
                     </div>
-                    <p className="text-gray-700 mb-4 flex-grow">"{testimonial.text}"</p>
-                    <div className="mt-auto">
-                      <p className="font-medium text-gray-900">{testimonial.name}</p>
-                      <p className="text-sm text-gray-500">{persona}</p>
-                    </div>
-                  </div>
-                ))
+                  ))
               )}
             </div>
-            
+
             {/* Show More/Less Button for Mobile Testimonials */}
             <div className="sm:hidden mt-8 text-center">
               <button
@@ -628,25 +762,61 @@ export function ExamplesCheckoutStep() {
             </div>
           </section>
 
-          {/* Action Buttons */}
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
+          {/* Action Buttons (desktop) */}
+          <div className="hidden sm:block bg-white p-8 rounded-2xl shadow-sm">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                Ready to Create Your Travel Pack?
+                Ready to Create Your Travel Brief?
               </h3>
               <p className="text-gray-600">
                 Get a personalized travel brief just like these examples, tailored to your specific trip.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {isSubscribed && (
+                <button
+                  onClick={handleDirectGeneration}
+                  disabled={isProcessing || checkingSubscription}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <Zap className="h-5 w-5"/>
+                  {isProcessing ? 'Generating...' : 'Continue'}
+                </button>
+              )}
               <button
                 onClick={handleContinue}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                disabled={isProcessing || checkingSubscription}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue to Preview
-                <ArrowRight className="h-5 w-5" />
+                {isSubscribed ? 'Create My Travel Brief' : 'Continue to Preview'}
+                <ArrowRight className="h-5 w-5"/>
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Mobile CTA */}
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white/90 backdrop-blur border-t border-gray-200 p-4">
+          <div className="max-w-7xl mx-auto px-2">
+            <div className="flex items-center gap-3">
+              {isSubscribed ? (
+                <button
+                  onClick={handleDirectGeneration}
+                  disabled={isProcessing || checkingSubscription}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? 'Generating...' : 'Continue'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleContinue}
+                  disabled={isProcessing || checkingSubscription}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold transition-colors shadow-sm active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue to Preview
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -660,27 +830,28 @@ export function ExamplesCheckoutStep() {
                 onClick={closePreview}
                 className="fixed top-4 right-4 z-10 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-3 rounded-full shadow-lg transition-all duration-200"
               >
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6"/>
               </button>
 
               {/* Header */}
-              <div className="bg-white border-b border-gray-200 p-6 pr-16">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedPreview.title}</h2>
-                <p className="text-blue-600">{selectedPreview.destination} • {selectedPreview.duration}</p>
+              <div className="bg-white border-b border-gray-200 p-4 sm:p-6 pr-16 sticky top-0 z-10">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{selectedPreview.title}</h2>
+                <p
+                  className="text-sm sm:text-base text-blue-600">{selectedPreview.destination} • {selectedPreview.duration}</p>
               </div>
-              
+
               {/* Scrollable Content */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <iframe
                   src={selectedPreview.htmlFile}
                   className="w-full min-h-screen border-0 bg-white rounded-lg shadow-sm"
                   title={`Preview: ${selectedPreview.title}`}
-                  style={{ height: 'calc(100vh - 200px)' }}
+                  style={{height: 'calc(100vh - 220px)'}}
                 />
               </div>
 
               {/* Bottom CTA */}
-              <div className="bg-gray-50 border-t border-gray-200 p-6">
+              <div className="bg-gray-50 border-t border-gray-200 p-4 sm:p-6 sticky bottom-0">
                 <div className="text-center max-w-md mx-auto">
                   <p className="text-gray-600 mb-4">
                     Want a personalized pack like this for your trip?
@@ -690,10 +861,11 @@ export function ExamplesCheckoutStep() {
                       closePreview();
                       handleContinue();
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 mx-auto"
+                    disabled={isProcessing || checkingSubscription}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 mx-auto shadow-sm active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Create My Travel Pack
-                    <ArrowRight className="h-5 w-5" />
+                    {isSubscribed ? 'Create My Travel Brief' : 'Create My Travel Brief'}
+                    <ArrowRight className="h-5 w-5"/>
                   </button>
                 </div>
               </div>

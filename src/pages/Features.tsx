@@ -20,7 +20,7 @@ export function Features() {
             Everything You Need for Perfect Travel
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Travel Pack combines AI intelligence with travel expertise to create 
+            Travel Brief combines AI intelligence with travel expertise to create 
             comprehensive, personalized travel guides that work offline.
           </p>
         </Reveal>

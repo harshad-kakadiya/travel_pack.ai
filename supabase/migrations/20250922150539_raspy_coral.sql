@@ -1,5 +1,5 @@
 /*
-  # Travel Pack Database Schema
+  # Travel Brief Database Schema
 
   1. New Tables
     - `pending_sessions`
@@ -8,7 +8,7 @@
     - `booking_data`  
       - Extracted data from user uploads (OCR results)
     - `travel_briefs`
-      - Generated travel packs with file URLs
+      - Generated travel briefs with file URLs
     - `user_emails`
       - User email tracking and plan management
     - `logs_errors` & `logs_performance`

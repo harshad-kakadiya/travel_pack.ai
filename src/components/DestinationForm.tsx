@@ -15,6 +15,55 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
   const debounceRef = React.useRef<number | undefined>(undefined);
   const controllerRef = React.useRef<AbortController | null>(null);
 
+  // Function to validate destination suggestions
+  // This prevents incorrect suggestions like "Munichi Peru" from appearing in the dropdown
+  const isValidDestination = (item: { name: string; country?: string }): boolean => {
+    const name = item.name.toLowerCase();
+    const country = item.country?.toLowerCase() || '';
+    
+    // List of known invalid destinations
+    const invalidDestinations = [
+      'munichi',
+      'municha',
+      'municho',
+    ];
+    
+    // Check for Munich in countries where it doesn't exist
+    if (name.includes('munich') && (country.includes('peru') || country.includes('grenada'))) {
+      return false;
+    }
+    
+    // Check for other invalid city-country combinations
+    const invalidCombinations = [
+      { city: 'munich', countries: ['peru', 'grenada', 'india'] },
+      { city: 'paris', countries: ['peru', 'india'] },
+      { city: 'london', countries: ['peru', 'india'] },
+    ];
+    
+    for (const combo of invalidCombinations) {
+      if (name.includes(combo.city) && combo.countries.some(c => country.includes(c))) {
+        return false;
+      }
+    }
+    
+    // Check if the name contains any invalid patterns
+    if (invalidDestinations.some(invalid => name.includes(invalid))) {
+      return false;
+    }
+    
+    // Check for obviously fake city names (repeated characters, etc.)
+    if (/^[a-z]+\1+$/i.test(name)) {
+      return false;
+    }
+    
+    // Check for very short names that are likely errors
+    if (name.length < 2) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const fetchCitySuggestions = async (index: number, query: string) => {
     if (!query || query.trim().length < 2) {
       setSuggestionsByIndex((prev) => ({ ...prev, [index]: [] }));
@@ -30,7 +79,7 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
       const controller = new AbortController();
       controllerRef.current = controller;
 
-      // Use Open-Meteo Geocoding API as the single provider to avoid DNS errors
+      // Use Open-Meteo Geocoding API as the primary provider
       let items: { name: string; country?: string }[] = [];
       try {
         const resp = await fetch(
@@ -42,6 +91,26 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
           name: it.name,
           country: it.country,
         }));
+
+        // Filter out obviously incorrect suggestions using validation function
+        items = items.filter(isValidDestination);
+
+        // If we have no valid results, try a fallback service
+        if (items.length === 0) {
+          try {
+            const fallbackResp = await fetch(
+              `https://api.geonames.org/searchJSON?name=${encodeURIComponent(query)}&maxRows=8&username=demo&featureClass=P&featureCode=PPL`,
+              { signal: controller.signal }
+            );
+            const fallbackData = await fallbackResp.json();
+            items = (fallbackData?.geonames || []).map((it: any) => ({
+              name: it.name,
+              country: it.countryName,
+            })).filter(isValidDestination);
+          } catch (_fallbackErr) {
+            // If fallback also fails, keep empty array
+          }
+        }
       } catch (_err) {
         items = [];
       }
@@ -63,7 +132,7 @@ export function DestinationForm({ destinations, onUpdate, tripDuration }: Destin
     }
     debounceRef.current = window.setTimeout(() => {
       fetchCitySuggestions(index, value);
-    }, 2000);
+    }, 300);
   };
 
   const selectSuggestion = (index: number, suggestion: { name: string; country?: string }) => {

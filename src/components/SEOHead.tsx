@@ -14,7 +14,7 @@ export function SEOHead({
   image = "/og-image.png",
   url = "https://travelbrief.ai"
 }: SEOHeadProps) {
-  const pageTitle = title ? `${title} | TravelBrief.ai` : "TravelBrief.ai – AI-Powered Travel Packs in Minutes";
+  const pageTitle = title ? `${title} | TravelBrief.ai` : "TravelBrief.ai – AI-Powered Travel Briefs in Minutes";
   const ogTwitterTitle = "TravelBrief.ai";
   const ogTwitterDescription = "Generate personalized, AI-powered travel briefs with itineraries, packing lists, safety info, and offline tips. Tailored for every type of traveler.";
   

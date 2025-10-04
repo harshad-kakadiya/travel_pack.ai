@@ -23,7 +23,7 @@ interface CheckBucketsResponse {
 const REQUIRED_BUCKETS = [
   {
     name: 'travel-packs',
-    description: 'Storage for generated travel pack HTML and PDF files',
+    description: 'Storage for generated travel brief HTML and PDF files',
     policies: {
       select: true,
       insert: true,

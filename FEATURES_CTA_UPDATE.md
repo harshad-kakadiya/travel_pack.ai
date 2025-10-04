@@ -53,7 +53,7 @@ Updated the Features page CTA card to use the beach image background with homepa
 - [ ] Rounded corners maintained (`rounded-3xl`)
 
 ### Content:
-- [ ] Heading: "Ready to Create Your Perfect Travel Pack?" - unchanged
+- [ ] Heading: "Ready to Create Your Perfect Travel Brief?" - unchanged
 - [ ] Subtext: Trust message - unchanged
 - [ ] Button: "Start Planning Your Trip" - unchanged
 - [ ] All typography and spacing preserved

@@ -1,10 +1,12 @@
 import { SEOHead } from '../components/SEOHead';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTripContext } from '../context/TripContext';
 import { useAdminContext } from '../context/AdminContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from '../components/AuthModal';
 import { ArrowLeft, Shield, Globe, Clock, CheckCircle, ExternalLink, Crown } from 'lucide-react';
-import { createCheckoutSession } from '../lib/stripe';
+import { createCheckoutSession, checkSubscriptionByEmail } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
 import { v4 as uuidv4 } from "uuid";
@@ -21,14 +23,80 @@ interface AffiliateProduct {
 export function Preview() {
   const { tripData } = useTripContext();
   const { isAdmin, adminEmail, isWhitelisted } = useAdminContext();
+  const { user } = useAuth();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [affiliateProducts, setAffiliateProducts] = useState<AffiliateProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pendingYearlyCheckout, setPendingYearlyCheckout] = useState(false);
+  const [pendingSkipGenerate, setPendingSkipGenerate] = useState(false);
+  const [canSkip, setCanSkip] = useState(false);
 
   // Load affiliate products on component mount
   useEffect(() => {
     loadAffiliateProducts();
   }, []);
+
+  // Handle auth state change to trigger checkout after successful signup/login
+  useEffect(() => {
+    if (user && pendingYearlyCheckout && authModalOpen) {
+      // User just authenticated, close modal and proceed to checkout
+      setAuthModalOpen(false);
+      setPendingYearlyCheckout(false);
+      handleYearlyCheckout();
+    }
+  }, [user, pendingYearlyCheckout, authModalOpen]);
+
+  // After login from "Already subscribed? Sign in", auto-generate if yearly subscription
+  useEffect(() => {
+    const run = async () => {
+      if (user && pendingSkipGenerate) {
+        try {
+          const res = await checkSubscriptionByEmail(user.email!);
+          if (res?.is_subscribed) {
+            await generateViaSkip();
+          }
+        } finally {
+          setPendingSkipGenerate(false);
+          setAuthModalOpen(false);
+        }
+      }
+    };
+    run();
+  }, [user, pendingSkipGenerate]);
+
+  // If arriving from Step 2 mobile Continue with triggerGenerate, auto-generate for subscribed users
+  useEffect(() => {
+    const run = async () => {
+      const state = location.state as any;
+      if (state?.triggerGenerate && user?.email) {
+        try {
+          const res = await checkSubscriptionByEmail(user.email);
+          if (res?.is_subscribed) {
+            await generateViaSkip();
+          }
+        } finally {
+          // Clear state-like behavior by replacing history
+          window.history.replaceState({}, document.title);
+        }
+      }
+    };
+    run();
+  }, [location.state, user?.email]);
+
+  // Check subscription to allow direct generation
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const email = user?.email;
+        if (!email) { setCanSkip(false); return; }
+        const res = await checkSubscriptionByEmail(email);
+        setCanSkip(!!res?.is_subscribed);
+      } catch { setCanSkip(false); }
+    };
+    run();
+  }, [user?.email]);
 
   const loadAffiliateProducts = async () => {
     try {
@@ -120,8 +188,7 @@ export function Preview() {
     }
   };
   const handleOneTimeClick = async () => {
-    handleCheckout('one_time');
-
+    setIsLoading(true);
     try {
       // First create a pending session in the database
       const pendingSessionId = await createPendingSession();
@@ -145,9 +212,7 @@ export function Preview() {
     }
   };
 
-  const handleYearlyClick = async () => {
-    handleCheckout('yearly');
-
+  const handleYearlyCheckout = async () => {
     setIsLoading(true);
     try {
       // First create a pending session in the database
@@ -164,19 +229,60 @@ export function Preview() {
         pending_session_id: pendingSessionId
       });
 
-      window.open(url, '_blank');
+      window.location.href = url;
     } catch (error) {
       console.error('Checkout failed:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  async function generateViaSkip() {
+    try {
+      setIsLoading(true);
+      // Only allow subscribed users to skip directly to generation
+      if (!user?.email) {
+        window.location.href = '/pricing';
+        return;
+      }
+      try {
+        const res = await checkSubscriptionByEmail(user.email);
+        if (!res?.is_subscribed) {
+          window.location.href = '/pricing';
+          return;
+        }
+      } catch {
+        window.location.href = '/pricing';
+        return;
+      }
+      const pendingSessionId = await createPendingSession();
+      localStorage.setItem('pending_session_id', pendingSessionId);
+      localStorage.setItem('travel-pack-trip-data', JSON.stringify(tripData));
+      window.location.href = '/success?session_id=skip';
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleYearlyClick = async () => {
+    if (!user) {
+      // User not authenticated, show signup modal and set pending checkout
+      setPendingYearlyCheckout(true);
+      setAuthModalOpen(true);
+      return;
+    }
+
+    // User is authenticated, proceed to Stripe checkout
+    handleYearlyCheckout();
+  };
   const handleAdminGenerate = async () => {
     if (!isAdmin || !isWhitelisted(adminEmail)) {
       alert('Admin access required');
       return;
     }
-    
+
     // In real implementation, this would call generate-travel-brief with force=true
     alert('Admin generation would be implemented here');
   };
@@ -189,8 +295,8 @@ export function Preview() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
-            <Link 
-              to="/examples-checkout-step" 
+            <Link
+              to="/examples-checkout-step"
               className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -200,7 +306,7 @@ export function Preview() {
               Step 3 of 3
             </div>
           </div>
-          
+
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div className="bg-blue-600 h-2 rounded-full w-full"></div>
           </div>
@@ -250,8 +356,34 @@ export function Preview() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
                       Unlock Your Travel Brief
                     </h3>
-                    
+
                     <div className="space-y-4">
+                      {canSkip && (
+                        <div className="border-2 border-green-300 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-gray-900">Subscription Active</h4>
+                            <span className="text-sm font-medium text-green-700">Yearly</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4">You can generate this brief without paying again.</p>
+                          <button
+                            onClick={async () => { await generateViaSkip(); }}
+                            disabled={isLoading}
+                            className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {isLoading ? 'Preparing…' : 'Generate Now (Skip Payment)'}
+                          </button>
+                        </div>
+                      )}
+                      {!user && (
+                        <div className="text-center">
+                          <button
+                            onClick={() => { setPendingSkipGenerate(true); setAuthModalOpen(true); }}
+                            className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            Already subscribed? Sign in
+                          </button>
+                        </div>
+                      )}
                       {/* One-time Purchase */}
                       <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                         <div className="flex items-center justify-between mb-2">
@@ -283,7 +415,7 @@ export function Preview() {
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold text-gray-900">Unlimited Yearly</h4>
                           <div className="text-right">
-                            <span className="text-2xl font-bold text-gray-900">$29</span>
+                            <span className="text-2xl font-bold text-gray-900">$39</span>
                             <div className="text-xs text-gray-500">per year</div>
                           </div>
                         </div>
@@ -316,14 +448,14 @@ export function Preview() {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="p-8 space-y-6 filter blur-sm">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Welcome to Your Adventure</h2>
                     <p className="text-gray-600">
-                      You're about to embark on an incredible journey! This comprehensive travel brief has been 
-                      personalized specifically for your travel style and destination. From the moment you land 
-                      to your safe return home, we've got you covered with detailed insights, safety tips, and 
+                      You're about to embark on an incredible journey! This comprehensive travel brief has been
+                      personalized specifically for your travel style and destination. From the moment you land
+                      to your safe return home, we've got you covered with detailed insights, safety tips, and
                       local knowledge that will make your trip unforgettable.
                     </p>
                   </div>
@@ -395,7 +527,7 @@ export function Preview() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Recommended Travel Essentials
                 </h3>
-                
+
                 {loadingProducts ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -449,6 +581,12 @@ export function Preview() {
           </div>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        startInSignUp={!pendingSkipGenerate}
+      />
       </div>
     </>
   );

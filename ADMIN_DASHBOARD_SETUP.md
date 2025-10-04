@@ -184,7 +184,7 @@ The required dependencies have been installed:
 3. Access the dashboard with KPIs and blog management
 
 #### Dashboard Features
-- **KPIs**: Total travel packs, revenue tracking, affiliate clicks
+- **KPIs**: Total travel briefs, revenue tracking, affiliate clicks
 - **Analytics**: Persona breakdown, top destinations, recent packs
 - **Blog Management**: Create, edit, delete blog posts
 - **Responsive Design**: Works on desktop and mobile

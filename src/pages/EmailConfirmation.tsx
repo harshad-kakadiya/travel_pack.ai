@@ -31,10 +31,19 @@ export function EmailConfirmation() {
             setStatus('success');
             setMessage('Email confirmed successfully! Welcome to TravelBrief.ai!');
             
-            // Redirect to the main app after a short delay
-            setTimeout(() => {
-              navigate('/plan');
-            }, 3000);
+            // Check if user came from pricing page for $39 plan
+            const fromPricing = sessionStorage.getItem('pendingYearlyCheckout');
+            if (fromPricing) {
+              // Redirect to pricing page to complete checkout
+              setTimeout(() => {
+                navigate('/pricing');
+              }, 2000);
+            } else {
+              // Default redirect to the main app
+              setTimeout(() => {
+                navigate('/plan');
+              }, 3000);
+            }
           } else {
             setStatus('error');
             setMessage('Email confirmation failed. Please try again.');
@@ -122,7 +131,14 @@ export function EmailConfirmation() {
                   You will be redirected automatically in a few seconds...
                 </p>
                 <button
-                  onClick={() => navigate('/plan')}
+                  onClick={() => {
+                    const fromPricing = sessionStorage.getItem('pendingYearlyCheckout');
+                    if (fromPricing) {
+                      navigate('/pricing');
+                    } else {
+                      navigate('/plan');
+                    }
+                  }}
                   className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Continue to App

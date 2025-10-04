@@ -2,6 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Scroll behavior and layout fixes */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  scroll-behavior: smooth;
+}
+
+/* Performance optimizations for animations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Optimize image loading */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Avoid rendering offscreen content until needed */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 400px; /* approximate card size for faster layout */
+}
+
+/* Fade-in animation for modals */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Reduce motion for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .will-change-transform, .will-change-opacity { 
+    transition: none !important; 
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Enhanced focus states for better UX and accessibility */
 @layer base {
   /* Remove default outline on mouse focus */

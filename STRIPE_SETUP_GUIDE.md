@@ -24,16 +24,16 @@ This guide will help you set up Stripe payment integration with your TravelBrief
 
 ### 2.1 One-Time Pack Product
 1. Go to **Products** → **Add Product**
-2. **Name**: "Travel Pack - One Time"
-3. **Description**: "One personalized Travel Pack with complete itinerary & safety info"
+2. **Name**: "Travel Brief - One Time"
+3. **Description**: "One personalized Travel Brief with complete itinerary & safety info"
 4. **Price**: $5.00 USD
 5. **Billing**: One-time
 6. **Copy the Price ID** (starts with `price_`)
 
 ### 2.2 Yearly Subscription Product
 1. Go to **Products** → **Add Product**
-2. **Name**: "Travel Pack - Yearly Unlimited"
-3. **Description**: "Unlimited Travel Packs for one year"
+2. **Name**: "Travel Brief - Yearly Unlimited"
+3. **Description**: "Unlimited Travel Briefs for one year"
 4. **Price**: $39.00 USD
 5. **Billing**: Recurring (yearly)
 6. **Copy the Price ID** (starts with `price_`)
