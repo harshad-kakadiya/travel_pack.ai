@@ -7,16 +7,15 @@ export function ScrollToTop() {
   useEffect(() => {
     // Scroll to top when pathname changes
     // Use multiple methods to ensure scroll works across different scenarios
-    
+
     // Method 1: Immediate scroll for instant feedback
     window.scrollTo(0, 0);
-    
+
     // Method 2: Smooth scroll after a brief delay to ensure DOM is ready
     const timeoutId = setTimeout(() => {
       window.scrollTo({
         top: 0,
         left: 0,
-        behavior: 'smooth'
       });
     }, 100);
 

@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scroll behavior and layout fixes */
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  scroll-behavior: smooth;
-}
-
 /* Performance optimizations for animations */
 .will-change-transform {
   will-change: transform;
@@ -50,10 +41,10 @@ img {
 
 /* Reduce motion for better performance */
 @media (prefers-reduced-motion: reduce) {
-  .will-change-transform, .will-change-opacity { 
-    transition: none !important; 
+  .will-change-transform, .will-change-opacity {
+    transition: none !important;
   }
-  
+
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -71,7 +62,7 @@ img {
   select:focus {
     outline: none;
   }
-  
+
   /* Custom focus-visible styles for keyboard navigation */
   a:focus-visible,
   button:focus-visible,
@@ -100,7 +91,7 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .will-change-transform, .will-change-opacity { 
-    transition: none !important; 
+  .will-change-transform, .will-change-opacity {
+    transition: none !important;
   }
 }

@@ -700,7 +700,7 @@ export function ExamplesCheckoutStep() {
                           onClick={() => openPreview(pack)}
                           className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-sm active:translate-y-px"
                         >
-                          Preview Pack
+                          Preview Brief
                           <ExternalLink className="h-4 w-4"/>
                         </button>
                       </div>

@@ -374,16 +374,7 @@ export function Preview() {
                           </button>
                         </div>
                       )}
-                      {!user && (
-                        <div className="text-center">
-                          <button
-                            onClick={() => { setPendingSkipGenerate(true); setAuthModalOpen(true); }}
-                            className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            Already subscribed? Sign in
-                          </button>
-                        </div>
-                      )}
+
                       {/* One-time Purchase */}
                       <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                         <div className="flex items-center justify-between mb-2">
@@ -431,6 +422,16 @@ export function Preview() {
                         >
                           {isLoading ? 'Processing...' : 'Get Unlimited Access'}
                         </button>
+                        {!user && (
+                          <div className="text-center">
+                            <button
+                              onClick={() => { setPendingSkipGenerate(true); setAuthModalOpen(true); }}
+                              className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              Already subscribed? Sign in
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
